@@ -1,9 +1,17 @@
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
 
+#define _CRT_SECURE_NO_DEPRECATE
 #define GLUT_DISABLE_ATEXIT_HACK
 #include "GL/glew.h"
 #include "GL/freeglut.h"
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 using namespace std;
 // ----------------------------------------------------------
@@ -18,6 +26,88 @@ void setup();
 // ----------------------------------------------------------
 double rotate_y = 0;
 double rotate_x = 0;
+
+static int programHandle; // obiekt programu
+static int vertexShaderHandle; // obiekt shadera wierzcho³ków
+static int fragmentShaderHandle; // obiekt shadera fragmentów
+static GLint locMVP;  // macierz przekszta³cenia
+
+VertexBuffer *vb;
+IndexBuffer *ib;
+
+const char* vs = "vert.vs";
+const char* fs = "frag.fs";
+
+// funkcja do odczytu kodu shaderow
+char* readShader(const char* aShaderFile)
+{
+	FILE* filePointer = fopen(aShaderFile, "rb");
+	char* content = NULL;
+	long numVal = 0;
+
+	fseek(filePointer, 0L, SEEK_END);
+	numVal = ftell(filePointer);
+	fseek(filePointer, 0L, SEEK_SET);
+	content = (char*)malloc((numVal + 1) * sizeof(char));
+	fread(content, 1, numVal, filePointer);
+	content[numVal] = '\0';
+	fclose(filePointer);
+	return content;
+}
+
+
+
+// incjalizacja shaderów
+void setShaders(const char* vertexShaderFile, const char* fragmentShaderFile)
+{
+	GLint status = 0;
+
+	char* vertexShader = readShader(vertexShaderFile);
+	char* fragmentShader = readShader(fragmentShaderFile);
+
+	programHandle = glCreateProgram(); // tworzenie obiektu programu
+	vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER); // shader wierzcho³ków
+	fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER); // shader fragmentów
+
+
+	glShaderSource(vertexShaderHandle, 1, (const char**)&vertexShader, NULL); // ustawianie Ÿród³a shadera wierzcho³ków
+	glShaderSource(fragmentShaderHandle, 1, (const char**)&fragmentShader, NULL); // ustawianie Ÿród³a shadera fragmentów
+
+	   // kompilacja shaderów
+	glCompileShader(vertexShaderHandle);
+	glCompileShader(fragmentShaderHandle);
+
+	char infoLog[512];
+	glGetShaderiv(vertexShaderHandle, GL_COMPILE_STATUS, &status);
+
+	if (!status)
+	{
+		const int maxInfoLogSize = 2048;
+		GLchar infoLog[maxInfoLogSize];
+		glGetInfoLogARB(fragmentShaderHandle, maxInfoLogSize, NULL, infoLog);
+		std::cout << infoLog;
+	}
+
+	//dodanie shaderów do programu
+	glAttachShader(programHandle, vertexShaderHandle);
+	glAttachShader(programHandle, fragmentShaderHandle);
+
+
+	/* link */
+	//uruchomienie
+	glLinkProgram(programHandle);
+	glGetObjectParameterivARB(programHandle, GL_OBJECT_LINK_STATUS_ARB, &status);
+	if (!status) {
+		const int maxInfoLogSize = 2048;
+		GLchar infoLog[maxInfoLogSize];
+		glGetInfoLogARB(programHandle, maxInfoLogSize, NULL, infoLog);
+		std::cout << infoLog;
+	}
+	glUseProgram(programHandle); // Installs program into current rendering state.
+
+	//zmienna typu UNIFORM -- macierz przekszta³cenia
+	locMVP = glGetUniformLocation(programHandle, "MVP");
+}
 
 void setup()
 {
@@ -41,6 +131,21 @@ void setup()
 
 		-s,  s, -s,		-s,  s,  s,		 s,  s,  s,
 		-s,  s, -s,		 s,  s,  s,		 s,  s, -s
+	};
+	unsigned int indicies[36] = {
+
+		0,1,2,
+		3,4,5,
+		6,7,8,
+		9,10,11,
+		12,13,14,
+		15,16,17,
+		18,19,20,
+		21,22,23,
+		24,25,26,
+		27,28,29,
+		30,31,32,
+		33,34,35
 	};	
 	float cubeColor[144] = {
 
@@ -63,11 +168,9 @@ void setup()
 		1,0,1,1,	1,0,1,1,	1,0,1,1
 	};
 
-	unsigned int buffer;
+	vb = new VertexBuffer(cube, 108 * sizeof(float));
+	ib = new IndexBuffer(indicies,36);
 
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(float), cube, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(float)*3,0);
 }
@@ -92,9 +195,14 @@ void display()
 	glRotatef(rotate_x, 1.0, 0.0, 0.0);
 	glRotatef(rotate_y, 0.0, 1.0, 0.0);
 
-	for (int i = 0; i < 12; i++)
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	ib->Bind();
+
+	for (int i = 0; i < 6; i++)
 	{
-		glDrawArrays(GL_TRIANGLES, i*3, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 	}
 
 	glFlush();
@@ -151,12 +259,17 @@ int main(int argc, char* argv[])
 	//  Enable Z-buffer depth test
 	glEnable(GL_DEPTH_TEST);
 	setup();
+
+	setShaders(vs, fs);
 	// Callback functions
 	glutDisplayFunc(display);
 	glutSpecialFunc(specialKeys);
 
 	//  Pass control to GLUT for events
 	glutMainLoop();
+
+	delete vb;
+	delete ib;
 
 	//  Return to OS
 	return 0;
