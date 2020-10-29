@@ -12,6 +12,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 using namespace std;
 // ----------------------------------------------------------
@@ -34,6 +35,7 @@ static GLint locMVP;  // macierz przekszta³cenia
 
 VertexBuffer *vb;
 IndexBuffer *ib;
+VertexArray *va;
 
 const char* vs = "vert.vs";
 const char* fs = "frag.fs";
@@ -167,12 +169,16 @@ void setup()
 		1,0,1,1,	1,0,1,1,	1,0,1,1,
 		1,0,1,1,	1,0,1,1,	1,0,1,1
 	};
-
+	
+	va = new VertexArray();
 	vb = new VertexBuffer(cube, 108 * sizeof(float));
-	ib = new IndexBuffer(indicies,36);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(float)*3,0);
+	VertexBufferLayout layout;
+
+	layout.Push<float>(0.5);
+	va->AddBuffer(*vb,layout);
+
+	ib = new IndexBuffer(indicies,36);
 }
 
 // ----------------------------------------------------------
@@ -195,9 +201,7 @@ void display()
 	glRotatef(rotate_x, 1.0, 0.0, 0.0);
 	glRotatef(rotate_y, 0.0, 1.0, 0.0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+	va->Bind();
 	ib->Bind();
 
 	for (int i = 0; i < 6; i++)
