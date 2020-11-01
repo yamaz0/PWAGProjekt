@@ -56,6 +56,42 @@ unsigned int indicies[6] =
 	0,1,2,
 	2,3,0
 };
+float const s = 0.5;
+float cube[108] = {
+
+	-s, -s,  s,		 s, -s,  s,		 s,  s,  s,
+	-s, -s,  s,		 s,  s,  s,		-s,  s,  s,
+
+	-s,  -s,  s,	-s, -s,  -s,	 s,  -s,  s,
+	-s,  -s, -s,	 s, -s,  -s,	 s,  -s,  s,
+
+	s, -s,  s,		 s, -s, -s,		 s,  s, -s,
+	s, -s,  s,		 s,  s, -s,		 s,  s,  s,
+
+	s,  s, -s,		 s, -s, -s,		-s, -s, -s,
+	s,  s, -s,		-s, -s, -s,		-s,  s, -s,
+
+	-s,  s, -s,		-s, -s, -s,		-s, -s,  s,
+	-s,  s, -s,		-s, -s,  s,		-s,  s,  s,
+
+	-s,  s, -s,		-s,  s,  s,		 s,  s,  s,
+	-s,  s, -s,		 s,  s,  s,		 s,  s, -s
+};
+unsigned int indiciesCube[36] = {
+
+	0,1,2,
+	3,4,5,
+	6,7,8,
+	9,10,11,
+	12,13,14,
+	15,16,17,
+	18,19,20,
+	21,22,23,
+	24,25,26,
+	27,28,29,
+	30,31,32,
+	33,34,35
+};
 
 
 //// funkcja do odczytu kodu shaderow
@@ -131,54 +167,18 @@ unsigned int indicies[6] =
 
 void setup()
 {
-	float const s = 0.5;
-	float cube[108] = {
 
-		-s, -s,  s,		 s, -s,  s,		 s,  s,  s,
-		-s, -s,  s,		 s,  s,  s,		-s,  s,  s,
-
-		-s,  -s,  s,	-s, -s,  -s,	 s,  -s,  s,
-		-s,  -s, -s,	 s, -s,  -s,	 s,  -s,  s,
-
-		s, -s,  s,		 s, -s, -s,		 s,  s, -s,
-		s, -s,  s,		 s,  s, -s,		 s,  s,  s,
-
-		s,  s, -s,		 s, -s, -s,		-s, -s, -s,
-		s,  s, -s,		-s, -s, -s,		-s,  s, -s,
-
-		-s,  s, -s,		-s, -s, -s,		-s, -s,  s,
-		-s,  s, -s,		-s, -s,  s,		-s,  s,  s,
-
-		-s,  s, -s,		-s,  s,  s,		 s,  s,  s,
-		-s,  s, -s,		 s,  s,  s,		 s,  s, -s
-	};
-	unsigned int indiciesCube[36] = {
-
-		0,1,2,
-		3,4,5,
-		6,7,8,
-		9,10,11,
-		12,13,14,
-		15,16,17,
-		18,19,20,
-		21,22,23,
-		24,25,26,
-		27,28,29,
-		30,31,32,
-		33,34,35
-	};	
-	
 	va = new VertexArray();
-	vb = new VertexBuffer(positions, 4*2 * sizeof(float));
+	vb = new VertexBuffer(cube, 108 * sizeof(float));
 	
-	layout.Push<float>(0.5);
+	layout.Push<float>(3);
 	va->AddBuffer(*vb,layout);
 
-	ib = new IndexBuffer(indicies,6);
-	//shader = new Shader("Basic.shader");
+	ib = new IndexBuffer(indiciesCube,36);
+	shader = new Shader("Basic.shader");
 
-	//shader->Bind();
-	//shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
+	shader->Bind();
+	shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
 	va->Unbind();
 	shader->Unbind();
 	vb->Unbin();
@@ -204,9 +204,9 @@ void display()
 	// Rotate when user changes rotate_x and rotate_y
 	glRotatef(rotate_x, 1.0, 0.0, 0.0);
 	glRotatef(rotate_y, 0.0, 1.0, 0.0);
-/*
+
 	shader->Bind();
-	shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);*/
+	shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);
 
 	va->Bind();
 	ib->Bind();
