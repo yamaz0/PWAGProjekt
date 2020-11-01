@@ -30,7 +30,6 @@ private:
 public:
 	VertexBufferLayout()
 		: m_Stride(0) {}
-	~VertexBufferLayout();
 
 	template<typename T>
 	void Push(unsigned int count)
