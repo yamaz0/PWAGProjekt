@@ -14,6 +14,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 using namespace std;
 // ----------------------------------------------------------
@@ -38,7 +39,10 @@ VertexBuffer *vb;
 IndexBuffer *ib;
 VertexArray *va;
 Shader *shader;
+Texture *texture;
 VertexBufferLayout layout;
+
+Renderer renderer;
 
 const char* vs = "vert.vs";
 const char* fs = "frag.fs";
@@ -57,7 +61,7 @@ unsigned int indicies[6] =
 	2,3,0
 };
 float const s = 0.5;
-float cube[108] = {
+float cubeT[108] = {
 
 	-s, -s,  s,		 s, -s,  s,		 s,  s,  s,
 	-s, -s,  s,		 s,  s,  s,		-s,  s,  s,
@@ -77,7 +81,7 @@ float cube[108] = {
 	-s,  s, -s,		-s,  s,  s,		 s,  s,  s,
 	-s,  s, -s,		 s,  s,  s,		 s,  s, -s
 };
-unsigned int indiciesCube[36] = {
+unsigned int indiciesCubeT[36] = {
 
 	0,1,2,
 	3,4,5,
@@ -91,6 +95,41 @@ unsigned int indiciesCube[36] = {
 	27,28,29,
 	30,31,32,
 	33,34,35
+};float cube[] = {
+	-s, -s,  s,
+	 s, -s,  s,
+	 s,  s,  s,
+	-s,  s,  s,
+
+	-s, -s, -s,
+	-s,  s, -s,
+	 s,  s, -s,
+	 s, -s, -s,
+
+	-s,  s, -s,
+	-s,  s,  s,
+	 s,  s,  s,
+	 s,  s, -s,
+
+	-s, -s, -s,
+	 s, -s, -s,
+	 s, -s,  s,
+	-s, -s,  s,
+
+	 s, -s, -s,
+	 s,  s, -s,
+	 s,  s,  s,
+	 s, -s,  s,
+
+	-s, -s, -s,
+	-s, -s,  s,
+	-s,  s,  s,
+	-s,  s, -s
+
+};
+unsigned int indiciesCube[] = {
+	0
+
 };
 
 
@@ -167,18 +206,22 @@ unsigned int indiciesCube[36] = {
 
 void setup()
 {
-
-	va = new VertexArray();
+	texture = new Texture("Textures/test.png");
+	ib = new IndexBuffer(indiciesCube,36);
 	vb = new VertexBuffer(cube, 108 * sizeof(float));
+	va = new VertexArray();
+	shader = new Shader("Basic.shader");
+
 	
 	layout.Push<float>(3);
 	va->AddBuffer(*vb,layout);
 
-	ib = new IndexBuffer(indiciesCube,36);
-	shader = new Shader("Basic.shader");
-
 	shader->Bind();
 	shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
+
+	texture->Bind();
+	shader->SetUniform1i("u_Texture", 0);
+
 	va->Unbind();
 	shader->Unbind();
 	vb->Unbin();
@@ -192,7 +235,7 @@ void display()
 {
 
 	//  Clear screen and Z-buffer
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	renderer.Clear();
 
 	// Reset transformations
 	glLoadIdentity();
@@ -205,16 +248,9 @@ void display()
 	glRotatef(rotate_x, 1.0, 0.0, 0.0);
 	glRotatef(rotate_y, 0.0, 1.0, 0.0);
 
-	shader->Bind();
 	shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);
 
-	va->Bind();
-	ib->Bind();
-
-	//for (int i = 0; i < 6; i++)
-	//{
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-	//}
+	renderer.Draw(*va, *ib, *shader);
 
 	glFlush();
 	glutSwapBuffers();
