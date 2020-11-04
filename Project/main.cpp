@@ -96,40 +96,55 @@ unsigned int indiciesCubeT[36] = {
 	30,31,32,
 	33,34,35
 };float cube[] = {
-	-s, -s,  s,
-	 s, -s,  s,
-	 s,  s,  s,
-	-s,  s,  s,
+	-s, -s,  s, 0, 0, //0
+	 s, -s,  s, 1, 0, //1
+	 s,  s,  s, 1, 1, //2
+	-s,  s,  s, 0, 1, //3
 
-	-s, -s, -s,
-	-s,  s, -s,
-	 s,  s, -s,
-	 s, -s, -s,
+	-s, -s, -s, 0, 0,
+	-s,  s, -s, 1, 0,
+	 s,  s, -s, 1, 1,
+	 s, -s, -s, 0, 1,
 
-	-s,  s, -s,
-	-s,  s,  s,
-	 s,  s,  s,
-	 s,  s, -s,
+	-s,  s, -s, 0, 0,
+	-s,  s,  s, 1, 0,
+	 s,  s,  s, 1, 1,
+	 s,  s, -s, 0, 1,
 
-	-s, -s, -s,
-	 s, -s, -s,
-	 s, -s,  s,
-	-s, -s,  s,
+	-s, -s, -s, 0, 0,
+	 s, -s, -s, 1, 0,
+	 s, -s,  s, 1, 1,
+	-s, -s,  s, 0, 1,
 
-	 s, -s, -s,
-	 s,  s, -s,
-	 s,  s,  s,
-	 s, -s,  s,
+	 s, -s, -s, 0, 0,
+	 s,  s, -s, 1, 0,
+	 s,  s,  s, 1, 1,
+	 s, -s,  s, 0, 1,
 
-	-s, -s, -s,
-	-s, -s,  s,
-	-s,  s,  s,
-	-s,  s, -s
+	-s, -s, -s, 0, 0,
+	-s, -s,  s, 1, 0,
+	-s,  s,  s, 1, 1,
+	-s,  s, -s, 0, 1
 
 };
 unsigned int indiciesCube[] = {
-	0
+	0,1,2,
+	0,2,3,
 
+	4,5,6,
+	4,6,7,
+
+	8,9,10,
+	8,10,11,
+
+	12,13,14,
+	12,14,15,
+
+	16,17,18,
+	16,18,19,
+
+	20,21,22,
+	20,22,23
 };
 
 
@@ -207,13 +222,15 @@ unsigned int indiciesCube[] = {
 void setup()
 {
 	texture = new Texture("Textures/test.png");
-	ib = new IndexBuffer(indiciesCube,36);
-	vb = new VertexBuffer(cube, 108 * sizeof(float));
+	ib = new IndexBuffer(indiciesCube, 36);
+	vb = new VertexBuffer(cube, 5 * 24 * sizeof(float));
+	//vb = new VertexBuffer(cube, 11 * 12 * sizeof(float));
 	va = new VertexArray();
 	shader = new Shader("Basic.shader");
 
 	
 	layout.Push<float>(3);
+	layout.Push<float>(2);
 	va->AddBuffer(*vb,layout);
 
 	shader->Bind();
@@ -222,10 +239,10 @@ void setup()
 	texture->Bind();
 	shader->SetUniform1i("u_Texture", 0);
 
-	va->Unbind();
-	shader->Unbind();
-	vb->Unbin();
-	ib->Unbin();
+	//va->Unbind();
+	//shader->Unbind();
+	//vb->Unbin();
+	//ib->Unbin();
 }
 
 // ----------------------------------------------------------
