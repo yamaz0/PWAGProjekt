@@ -250,7 +250,6 @@ void setup()
 // ----------------------------------------------------------
 void display()
 {
-
 	//  Clear screen and Z-buffer
 	renderer.Clear();
 
@@ -291,10 +290,23 @@ void specialKeys(int key, int x, int y)
 
 	else if (key == GLUT_KEY_DOWN)
 		rotate_x -= 0.1f;
-
 	//  Request display update
 	glutPostRedisplay();
 
+}
+
+void NormalKeyHandler(unsigned char key, int x, int y)
+{
+	if (key == 'o')
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else if (key == 'p')
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	glutPostRedisplay();
 }
 
 // ----------------------------------------------------------
@@ -328,6 +340,7 @@ int main(int argc, char* argv[])
 	// Callback functions
 	glutDisplayFunc(display);
 	glutSpecialFunc(specialKeys);
+	glutKeyboardFunc(NormalKeyHandler);
 
 	//  Pass control to GLUT for events
 	glutMainLoop();
