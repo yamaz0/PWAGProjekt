@@ -15,6 +15,8 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "OBJLoader.h"
+#include "Camera.h"
 
 using namespace std;
 // ----------------------------------------------------------
@@ -27,13 +29,13 @@ void setup();
 // ----------------------------------------------------------
 // Global Variables
 // ----------------------------------------------------------
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
 double rotate_y = 0;
 double rotate_x = 0;
-
-//static int programHandle; // obiekt programu
-//static int vertexShaderHandle; // obiekt shadera wierzcho³ków
-//static int fragmentShaderHandle; // obiekt shadera fragmentów
-//static GLint locMVP;  // macierz przekszta³cenia
 
 VertexBuffer *vb;
 IndexBuffer *ib;
@@ -44,58 +46,15 @@ VertexBufferLayout layout;
 
 Renderer renderer;
 
-const char* vs = "vert.vs";
-const char* fs = "frag.fs";
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
 
-float positions[8] =
-{
-	-0.5f, -0.5f,
-	0.5f, -0.5f,
-	0.5f, 0.5f,
-	-0.5f,0.5f
-};
 
-unsigned int indicies[6] =
-{
-	0,1,2,
-	2,3,0
-};
 float const s = 0.5;
-float cubeT[108] = {
 
-	-s, -s,  s,		 s, -s,  s,		 s,  s,  s,
-	-s, -s,  s,		 s,  s,  s,		-s,  s,  s,
-
-	-s,  -s,  s,	-s, -s,  -s,	 s,  -s,  s,
-	-s,  -s, -s,	 s, -s,  -s,	 s,  -s,  s,
-
-	s, -s,  s,		 s, -s, -s,		 s,  s, -s,
-	s, -s,  s,		 s,  s, -s,		 s,  s,  s,
-
-	s,  s, -s,		 s, -s, -s,		-s, -s, -s,
-	s,  s, -s,		-s, -s, -s,		-s,  s, -s,
-
-	-s,  s, -s,		-s, -s, -s,		-s, -s,  s,
-	-s,  s, -s,		-s, -s,  s,		-s,  s,  s,
-
-	-s,  s, -s,		-s,  s,  s,		 s,  s,  s,
-	-s,  s, -s,		 s,  s,  s,		 s,  s, -s
-};
-unsigned int indiciesCubeT[36] = {
-
-	0,1,2,
-	3,4,5,
-	6,7,8,
-	9,10,11,
-	12,13,14,
-	15,16,17,
-	18,19,20,
-	21,22,23,
-	24,25,26,
-	27,28,29,
-	30,31,32,
-	33,34,35
-};float cube[] = {
+float cube[] = {
 	-s, -s,  s, 0, 0, //0
 	 s, -s,  s, 1, 0, //1
 	 s,  s,  s, 1, 1, //2
@@ -125,8 +84,8 @@ unsigned int indiciesCubeT[36] = {
 	-s, -s,  s, 1, 0,
 	-s,  s,  s, 1, 1,
 	-s,  s, -s, 0, 1
+	};
 
-};
 unsigned int indiciesCube[] = {
 	0,1,2,
 	0,2,3,
@@ -145,96 +104,40 @@ unsigned int indiciesCube[] = {
 
 	20,21,22,
 	20,22,23
-};
-
-
-//// funkcja do odczytu kodu shaderow
-//char* readShader(const char* aShaderFile)
-//{
-//	FILE* filePointer = fopen(aShaderFile, "rb");
-//	char* content = NULL;
-//	long numVal = 0;
-//
-//	fseek(filePointer, 0L, SEEK_END);
-//	numVal = ftell(filePointer);
-//	fseek(filePointer, 0L, SEEK_SET);
-//	content = (char*)malloc((numVal + 1) * sizeof(char));
-//	fread(content, 1, numVal, filePointer);
-//	content[numVal] = '\0';
-//	fclose(filePointer);
-//	return content;
-//}
-//
-//
-//
-//// incjalizacja shaderów
-//void setShaders(const char* vertexShaderFile, const char* fragmentShaderFile)
-//{
-//	GLint status = 0;
-//
-//	char* vertexShader = readShader(vertexShaderFile);
-//	char* fragmentShader = readShader(fragmentShaderFile);
-//
-//	programHandle = glCreateProgram(); // tworzenie obiektu programu
-//	vertexShaderHandle = glCreateShader(GL_VERTEX_SHADER); // shader wierzcho³ków
-//	fragmentShaderHandle = glCreateShader(GL_FRAGMENT_SHADER); // shader fragmentów
-//
-//
-//	glShaderSource(vertexShaderHandle, 1, (const char**)&vertexShader, NULL); // ustawianie Ÿród³a shadera wierzcho³ków
-//	glShaderSource(fragmentShaderHandle, 1, (const char**)&fragmentShader, NULL); // ustawianie Ÿród³a shadera fragmentów
-//
-//	   // kompilacja shaderów
-//	glCompileShader(vertexShaderHandle);
-//	glCompileShader(fragmentShaderHandle);
-//
-//	char infoLog[512];
-//	glGetShaderiv(vertexShaderHandle, GL_COMPILE_STATUS, &status);
-//
-//	if (!status)
-//	{
-//		const int maxInfoLogSize = 2048;
-//		GLchar infoLog[maxInfoLogSize];
-//		glGetInfoLogARB(fragmentShaderHandle, maxInfoLogSize, NULL, infoLog);
-//		std::cout << infoLog;
-//	}
-//
-//	//dodanie shaderów do programu
-//	glAttachShader(programHandle, vertexShaderHandle);
-//	glAttachShader(programHandle, fragmentShaderHandle);
-//
-//
-//	/* link */
-//	//uruchomienie
-//	glLinkProgram(programHandle);
-//	glGetObjectParameterivARB(programHandle, GL_OBJECT_LINK_STATUS_ARB, &status);
-//	if (!status) {
-//		const int maxInfoLogSize = 2048;
-//		GLchar infoLog[maxInfoLogSize];
-//		glGetInfoLogARB(programHandle, maxInfoLogSize, NULL, infoLog);
-//		std::cout << infoLog;
-//	}
-//	glUseProgram(programHandle); // Installs program into current rendering state.
-//
-//	//zmienna typu UNIFORM -- macierz przekszta³cenia
-//	locMVP = glGetUniformLocation(programHandle, "MVP");
-//}
+	};
 
 void setup()
 {
+	//OBJ obj = loadOBJ("OBJ/lowpolytree.obj");//????????????
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	texture = new Texture("Textures/test.png");
 	ib = new IndexBuffer(indiciesCube, 36);
 	vb = new VertexBuffer(cube, 5 * 24 * sizeof(float));
 	//vb = new VertexBuffer(cube, 11 * 12 * sizeof(float));
 	va = new VertexArray();
 	shader = new Shader("Basic.shader");
-
 	
 	layout.Push<float>(3);
 	layout.Push<float>(2);
 	va->AddBuffer(*vb,layout);
 
+	//glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+	//glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-1, 0, 0));
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0));
+	// pass projection matrix to shader (note that in this case it could change every frame)
+	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+	// camera/view transformation
+	glm::mat4 view = camera.GetViewMatrix();
+
+	glm::mat4 mvp = proj * view * model;
+
 	shader->Bind();
-	shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
+	//shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
+	shader->SetUniformMat4f("u_MVP", mvp);
 
 	texture->Bind();
 	shader->SetUniform1i("u_Texture", 0);
@@ -263,6 +166,22 @@ void display()
 	// Rotate when user changes rotate_x and rotate_y
 	glRotatef(rotate_x, 1.0, 0.0, 0.0);
 	glRotatef(rotate_y, 0.0, 1.0, 0.0);
+
+
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0));
+	// pass projection matrix to shader (note that in this case it could change every frame)
+	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+	// camera/view transformation
+	glm::mat4 view = camera.GetViewMatrix();
+
+	glm::mat4 mvp = proj * view * model;
+
+	shader->Bind();
+	//shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
+	shader->SetUniformMat4f("u_MVP", mvp);
+
+
 
 	shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);
 
@@ -306,6 +225,15 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
+	if (key == 'w')
+		camera.ProcessKeyboard(FORWARD, 0.1f);
+	if (key == 's')
+		camera.ProcessKeyboard(BACKWARD, 0.1f);
+	if (key == 'a')
+		camera.ProcessKeyboard(LEFT, 0.1f);
+	if (key == 'd')
+		camera.ProcessKeyboard(RIGHT, 0.1f);
+
 	glutPostRedisplay();
 }
 
@@ -320,7 +248,7 @@ int main(int argc, char* argv[])
 
 	//  Request double buffered true color window with Z-buffer
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize(500, 500);
+	glutInitWindowSize(SCR_WIDTH, SCR_HEIGHT);
 	glutInitWindowPosition(100, 100);
 	// Create window
 	glutCreateWindow("Awesome Cube");

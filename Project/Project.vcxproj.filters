@@ -50,12 +50,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="frag.fs">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="vert.vs">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="Basic.shader">
       <Filter>Resource Files\Shaders</Filter>
     </None>
@@ -83,6 +77,12 @@
       <Filter>Source Files\Vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
