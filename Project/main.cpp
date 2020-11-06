@@ -237,6 +237,35 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 	glutPostRedisplay();
 }
 
+void MouseButtonHandler(int button, int state, int x, int y)
+{
+	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
+	{
+		//store the x,y value where the click happened
+		puts("Middle button clicked");
+	}
+}
+
+void MouseMoveHandler(int x, int y)
+{
+
+	if (firstMouse)
+	{
+		lastX = x;
+		lastY = y;
+		firstMouse = false;
+	}
+
+	float xoffset = x - lastX;
+	float yoffset = lastY - y; // reversed since y-coordinates go from bottom to top
+
+	lastX = x;
+	lastY = y;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+	glutPostRedisplay();
+}
+
 // ----------------------------------------------------------
 // main() function
 // ----------------------------------------------------------
@@ -269,6 +298,12 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(display);
 	glutSpecialFunc(specialKeys);
 	glutKeyboardFunc(NormalKeyHandler);
+	glutMouseFunc(MouseButtonHandler);
+	glutMotionFunc(MouseMoveHandler);
+	//glutPassiveMotionFunc(MouseMoveHandler);
+
+	//void glutMotionFunc(void(*func) (int x, int y));
+	//void glutPassiveMotionFunc(void(*func) (int x, int y));
 
 	//  Pass control to GLUT for events
 	glutMainLoop();
