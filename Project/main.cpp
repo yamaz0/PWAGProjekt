@@ -10,13 +10,12 @@
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 #include "Renderer.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
+#include "Model.h"
+
 #include "Shader.h"
 #include "Texture.h"
-#include "OBJLoader.h"
 #include "Camera.h"
+#include "Light.h"
 
 using namespace std;
 // ----------------------------------------------------------
@@ -34,15 +33,17 @@ void setup();
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-double rotate_y = 0;
-double rotate_x = 0;
+glm::vec3 lightPosition = glm::vec3(5.f);
 
-VertexBuffer *vb;
-IndexBuffer *ib;
-VertexArray *va;
+std::vector<Model*> models;
+std::vector<PointLight*> pointLights;
+
 Shader *shader;
 Texture *texture;
-VertexBufferLayout layout;
+Texture *groundSpec;
+Texture *groundDif;
+Texture *treeTextureSpec;
+Texture *treeTextureDif;
 
 Renderer renderer;
 
@@ -51,96 +52,99 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
+Material* material;
 
-float const s = 0.5;
-
-float cube[] = {
-	-s, -s,  s, 0, 0, //0
-	 s, -s,  s, 1, 0, //1
-	 s,  s,  s, 1, 1, //2
-	-s,  s,  s, 0, 1, //3
-
-	-s, -s, -s, 0, 0,
-	-s,  s, -s, 1, 0,
-	 s,  s, -s, 1, 1,
-	 s, -s, -s, 0, 1,
-
-	-s,  s, -s, 0, 0,
-	-s,  s,  s, 1, 0,
-	 s,  s,  s, 1, 1,
-	 s,  s, -s, 0, 1,
-
-	-s, -s, -s, 0, 0,
-	 s, -s, -s, 1, 0,
-	 s, -s,  s, 1, 1,
-	-s, -s,  s, 0, 1,
-
-	 s, -s, -s, 0, 0,
-	 s,  s, -s, 1, 0,
-	 s,  s,  s, 1, 1,
-	 s, -s,  s, 0, 1,
-
-	-s, -s, -s, 0, 0,
-	-s, -s,  s, 1, 0,
-	-s,  s,  s, 1, 1,
-	-s,  s, -s, 0, 1
-	};
-
-unsigned int indiciesCube[] = {
-	0,1,2,
-	0,2,3,
-
-	4,5,6,
-	4,6,7,
-
-	8,9,10,
-	8,10,11,
-
-	12,13,14,
-	12,14,15,
-
-	16,17,18,
-	16,18,19,
-
-	20,21,22,
-	20,22,23
-	};
 
 void setup()
 {
-	//OBJ obj = loadOBJ("OBJ/lowpolytree.obj");//????????????
+	//OBJ cubeObj;
+	//for (size_t i = 0; i < 24; i++)
+	//{
+	//	glm::vec3 temp_vertices(cube[5*i], cube[5*i+1], cube[5*i+2]);
+	//	glm::vec2 temp_uv(cube[5*i+3], cube[5 * i +4]);
+	//	cubeObj.vertex.push_back(temp_vertices);
+	//	cubeObj.uv.push_back(temp_uv);
+	//}	
+	//
+	//for (size_t i = 0; i < 36; i++)
+	//{
+	//	cubeObj.indicies.push_back(indiciesCube[i]);
+	//}
 
+	//VertexBufferLayout layout1;
+	//layout1.Push<float>(3);
+	//layout1.Push<float>(2);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	material = new Material(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f));
+	treeTextureSpec = new Texture("Textures/treeTextureSpec.png");
+	treeTextureDif = new Texture("Textures/treeTextureDif.png");
+	//texture = new Texture("Textures/brown.png");
+	groundDif = new Texture("Textures/groundDif.png");
+	groundSpec = new Texture("Textures/groundSpec.png");
 	texture = new Texture("Textures/test.png");
-	ib = new IndexBuffer(indiciesCube, 36);
-	vb = new VertexBuffer(cube, 5 * 24 * sizeof(float));
-	//vb = new VertexBuffer(cube, 11 * 12 * sizeof(float));
-	va = new VertexArray();
-	shader = new Shader("Basic.shader");
-	
-	layout.Push<float>(3);
-	layout.Push<float>(2);
-	va->AddBuffer(*vb,layout);
+
+	std::vector<Vertex> tree = loadOBJ("OBJ/tree.obj");
+	std::vector<Vertex> cube = loadOBJ("OBJ/cube.obj");
+
+	glm::vec3 position(0, 0, 0);
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			position = glm::vec3(i*2.f, 0, j * 2.f);
+			models.push_back(new Model(position, material, groundDif, groundSpec, cube));
+		}
+	}
+
+	position = glm::vec3(1, 0.5f, 1);
+	models.push_back(new Model(position, material, treeTextureDif, treeTextureSpec, tree));
+	position= glm::vec3(5, 0.5f, 1);
+	models.push_back(new Model(position, material, treeTextureDif, treeTextureSpec, tree));
+	position = glm::vec3(3, 0.5f, 5);
+	models.push_back(new Model(position, material, treeTextureDif, treeTextureSpec, tree));
+
+
+	pointLights.push_back(new PointLight(lightPosition));
+
+
+
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//texture = new Texture("Textures/test.png");
+	//ib = new IndexBuffer(indiciesCube, 36);
+	//vb = new VertexBuffer(cube, 5 * 24 * sizeof(float));
+	//ib = new IndexBuffer(indicies, obj.indicies.size());
+	////ib = new IndexBuffer(&obj.indicies[0], obj.indicies.size());
+	//vb = new VertexBuffer(&obj.vertex[0], obj.vertex.size() * sizeof(float));
+	////vb = new VertexBuffer(cube, 11 * 12 * sizeof(float));
+	//va = new VertexArray();
+	shader = new Shader("Shader.shader");
+	//
+	//layout.Push<float>(3);
+	////layout.Push<float>(2);
+	//va->AddBuffer(*vb,layout);
 
 	//glm::mat4 proj = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
 	//glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(-1, 0, 0));
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0));
+	//glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0));
 	// pass projection matrix to shader (note that in this case it could change every frame)
 	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
 	// camera/view transformation
 	glm::mat4 view = camera.GetViewMatrix();
-
-	glm::mat4 mvp = proj * view * model;
+/*
+	glm::mat4 mvp =  *  * ;*/
 
 	shader->Bind();
 	//shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
-	shader->SetUniformMat4f("u_MVP", mvp);
+	shader->SetUniformMat4f("ViewMatrix", view);
+	shader->SetUniformMat4f("ProjectionMatrix", proj);
+	//shader->SetUniformMat4f("ModelMatrix", (*models[0]->GetMesh())[0]->GetModelMatrix());
 
-	texture->Bind();
-	shader->SetUniform1i("u_Texture", 0);
+	//texture->Bind();
+	//shader->SetUniform1i("u_Texture", 0);
 
 	//va->Unbind();
 	//shader->Unbind();
@@ -164,9 +168,8 @@ void display()
 	// glRotatef( 180, 0.0, 1.0, 0.0 );    // Not included
 
 	// Rotate when user changes rotate_x and rotate_y
-	glRotatef(rotate_x, 1.0, 0.0, 0.0);
-	glRotatef(rotate_y, 0.0, 1.0, 0.0);
-
+	//glRotatef(rotate_x, 1.0, 0.0, 0.0);
+	//glRotatef(rotate_y, 0.0, 1.0, 0.0);
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, 0));
 	// pass projection matrix to shader (note that in this case it could change every frame)
@@ -179,13 +182,28 @@ void display()
 
 	shader->Bind();
 	//shader->SetUniform4f("u_Color", 0.8f, 0.8f, 0.8f, 1.0f);
-	shader->SetUniformMat4f("u_MVP", mvp);
+	//shader->SetUniformMat4f("u_MVP", mvp);
+	shader->SetUniformMat4f("ViewMatrix", view);
+	shader->SetUniformMat4f("ProjectionMatrix", proj);
+	//shader->SetUniformMat4f("ModelMatrix", (*models[0]->GetMesh())[0]->GetModelMatrix());
 
+	pointLights[0]->sendToShader(*shader);
 
+	for (int i = 0; i < models.size(); i++)
+	{
+		//if (i < 100)
+		//	ground->Bind();
+		//else
+			//treeTexture->Bind();
+		//shader->SetUniform1i("u_Texture", 0);
+		models[i]->render(shader);
+	}
 
-	shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);
+	//shader->SetUniform4f("u_Color", rotate_x, 0.8f, 0.8f, 1.0f);
 
-	renderer.Draw(*va, *ib, *shader);
+	//renderer.Draw(*models[0], *shader);
+	//renderer.Draw(*models[1], *shader);
+
 
 	glFlush();
 	glutSwapBuffers();
@@ -198,20 +216,20 @@ void specialKeys(int key, int x, int y)
 {
 	//  Right arrow - increase rotation by 5 degree
 	if (key == GLUT_KEY_RIGHT)
-		rotate_y += 5;
+		lightPosition.z += 5;
 
 	//  Left arrow - decrease rotation by 5 degree
 	else if (key == GLUT_KEY_LEFT)
-		rotate_y -= 5;
+		lightPosition.z -= 5;
 
 	else if (key == GLUT_KEY_UP)
-		rotate_x += 0.1f;
+		lightPosition.x += 5;
 
 	else if (key == GLUT_KEY_DOWN)
-		rotate_x -= 0.1f;
+		lightPosition.x -= 5;
 	//  Request display update
+	pointLights[0]->setPosition(lightPosition);
 	glutPostRedisplay();
-
 }
 
 void NormalKeyHandler(unsigned char key, int x, int y)
@@ -239,8 +257,9 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 
 void MouseButtonHandler(int button, int state, int x, int y)
 {
-	if (button == GLUT_MIDDLE_BUTTON && state == GLUT_DOWN)
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
+		firstMouse = true;
 		//store the x,y value where the click happened
 		puts("Middle button clicked");
 	}
@@ -280,7 +299,7 @@ int main(int argc, char* argv[])
 	glutInitWindowSize(SCR_WIDTH, SCR_HEIGHT);
 	glutInitWindowPosition(100, 100);
 	// Create window
-	glutCreateWindow("Awesome Cube");
+	glutCreateWindow("PWAG");
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
