@@ -33,7 +33,7 @@ public:
 	~Material() {}
 
 	//Function
-	void sendToShader(Shader& shader)
+	void SetUniforms(Shader& shader)
 	{
 		shader.SetUniform3f("material.ambient", ambient.x, ambient.y, ambient.z);
 		shader.SetUniform3f("material.diffuse", diffuse.x, diffuse.y, diffuse.z);

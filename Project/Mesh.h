@@ -5,6 +5,7 @@
 #include"Shader.h"
 #include"Texture.h"
 #include"Material.h"
+#include"Vertex.h"
 
 
 class Mesh
@@ -18,12 +19,7 @@ private:
 	GLuint VAO;
 	GLuint VBO;
 	GLuint EBO;
-
-	//VertexArray *va;
-	//VertexBuffer *vb;
-	//IndexBuffer *ib;
-	//VertexBufferLayout layout;
-
+	
 	glm::vec3 position;
 	glm::vec3 origin;
 	glm::vec3 rotation;
@@ -31,13 +27,11 @@ private:
 
 	glm::mat4 ModelMatrix;
 
-	void initVAO()
+	void InitVAO()
 	{
 		//Create VAO
 		glCreateVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
-		//va = new VertexArray();
-		//vb = new VertexBuffer(vertexArray, nrOfVertices);
 
 		//GEN VBO AND BIND AND SEND DATA
 		glGenBuffers(1, &VBO);
@@ -47,16 +41,10 @@ private:
 		//GEN EBO AND BIND AND SEND DATA
 		if (nrOfIndices > 0)
 		{
-			//ib = new IndexBuffer(indexArray, nrOfIndices);
 			glGenBuffers(1, &EBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, nrOfIndices * sizeof(GLuint), indexArray, GL_STATIC_DRAW);
 		}
-
-		//layout.Push<glm::vec3>(3);
-		//layout.Push<glm::vec3>(3);
-		//layout.Push<glm::vec2>(2);
-		//layout.Push<glm::vec3>(3);
 
 		//SET VERTEXATTRIBPOINTERS AND ENABLE (INPUT ASSEMBLY)
 		//Position
@@ -74,16 +62,14 @@ private:
 
 		//BIND VAO 0
 		glBindVertexArray(0);
-		//va->AddBuffer(*vb,layout);
 	}
 
-	void updateUniforms(Shader* shader)
+	void UpdateUniforms(Shader* shader)
 	{
 		shader->SetUniformMat4f("ModelMatrix", ModelMatrix);
-
 	}
 
-	void updateModelMatrix()
+	void UpdateModelMatrix()
 	{
 		ModelMatrix = glm::mat4(1.f);
 		ModelMatrix = glm::translate(ModelMatrix, origin);
@@ -125,34 +111,8 @@ public:
 			indexArray[i] = _indexArray[i];
 		}
 
-		initVAO();
-		updateModelMatrix();
-	}
-
-	Mesh(const Mesh& obj)
-	{
-		position = obj.position;
-		origin = obj.origin;
-		rotation = obj.rotation;
-		scale = obj.scale;
-
-		nrOfVertices = obj.nrOfVertices;
-		nrOfIndices = obj.nrOfIndices;
-
-		vertexArray = new Vertex[nrOfVertices];
-		for (size_t i = 0; i < nrOfVertices; i++)
-		{
-			vertexArray[i] = obj.vertexArray[i];
-		}
-
-		indexArray = new GLuint[nrOfIndices];
-		for (size_t i = 0; i < nrOfIndices; i++)
-		{
-			indexArray[i] = obj.indexArray[i];
-		}
-
-		initVAO();
-		updateModelMatrix();
+		InitVAO();
+		UpdateModelMatrix();
 	}
 
 	~Mesh()
@@ -165,77 +125,62 @@ public:
 			glDeleteBuffers(1, &EBO);
 		}
 
-		//delete[] va;
-		//delete[] vb;
-		//delete[] ib;
 		delete[] vertexArray;
 		delete[] indexArray;
 	}
 
-	//Accessors
-
 	//Modifiers
-	void setPosition(const glm::vec3 _position)
+	void SetPosition(const glm::vec3 _position)
 	{
 		position = _position;
 	}
 
-	void setOrigin(const glm::vec3 _origin)
+	void SetOrigin(const glm::vec3 _origin)
 	{
 		origin = _origin;
 	}
 
-	void setRotation(const glm::vec3 _rotation)
+	void SetRotation(const glm::vec3 _rotation)
 	{
 		rotation = _rotation;
 	}
 
-	void setScale(const glm::vec3 setScale)
+	void SetScale(const glm::vec3 setScale)
 	{
 		scale = scale;
 	}
 
 	//Functions
-	void move(const glm::vec3 _position)
+	void Move(const glm::vec3 _position)
 	{
 		position += _position;
 	}
 
-	void rotate(const glm::vec3 _rotation)
+	void Rotate(const glm::vec3 _rotation)
 	{
 		rotation += _rotation;
 	}
 
-	void scaleUp(const glm::vec3 _scale)
+	void ScaleUp(const glm::vec3 _scale)
 	{
 		scale += _scale;
 	}
 
-	void update()
-	{
-
-	}
-
-	void render(Shader* shader)
+	void Render(Shader* shader)
 	{
 		//Update uniforms
-		updateModelMatrix();
-		updateUniforms(shader);
-
-		//shader->use();
-
+		UpdateModelMatrix();
+		UpdateUniforms(shader);
+		
 		//Bind VAO
 		glBindVertexArray(VAO);
 		shader->Bind();
-		//va->Bind();
-		//vb->Bind();
 
 		//RENDER
 		if (nrOfIndices == 0)
 			glDrawArrays(GL_TRIANGLES, 0, nrOfVertices);
 		else
 		{
-			//ib->Bind();
 			glDrawElements(GL_TRIANGLES, nrOfIndices, GL_UNSIGNED_INT, 0);
 		}
 	}

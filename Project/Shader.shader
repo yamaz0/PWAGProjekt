@@ -54,14 +54,12 @@ in vec3 vs_normal;
 
 out vec4 fs_color;
 
-//Uniforms
 uniform Material material;
 uniform PointLight pointLight;
 uniform vec3 lightPos0;
 uniform vec3 cameraPos;
 uniform sampler2D u_Texture;
 
-//Functions
 vec3 calculateAmbient(Material material)
 {
 	return material.ambient;
@@ -83,16 +81,12 @@ vec3 calculateSpecular(Material material, vec3 vs_position, vec3 vs_normal, vec3
 	vec3 posToViewDirVec = normalize(cameraPos - vs_position);
 	float specularConstant = pow(max(dot(posToViewDirVec, reflectDirVec), 0), 35);
 	vec3 specularFinal = material.specular * specularConstant;
-	//vec3 specularFinal = material.specular * specularConstant;
 
 	return specularFinal;
 }
 
 void main()
 {
-	//fs_color = vec4(vs_color, 1.f);
-	//fs_color = texture(texture0, vs_texcoord) * texture(texture1, vs_texcoord) * vec4(vs_color, 1.f);
-
 	//Ambient light
 	vec3 ambientFinal = calculateAmbient(material);
 
@@ -112,11 +106,9 @@ void main()
 	diffuseFinal *= attenuation;
 	specularFinal *= attenuation;
 
+	//Final color
 	fs_color =
 		texture(material.diffuseTex, vs_texcoord)*texture(material.specularTex, vs_texcoord)
 		* (vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f)
 		* pointLight.intensity * vec4(pointLight.color, 1.f));
-
-	//fs_color =
-	//	(vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f));
 }

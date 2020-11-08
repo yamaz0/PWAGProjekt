@@ -1,27 +1,18 @@
 #pragma once
 
-//STD Libs
 #include<iostream>
 #include<string>
 #include<fstream>
 #include<vector>
 #include<sstream>
-#include<algorithm>
 
-//GLEW
 #include<gl/glew.h>
-
-
-//OpenGL Math libs
 #include<glm.hpp>
 #include<vec3.hpp>
-#include<vec4.hpp>
-#include<mat4x4.hpp>
-#include<gtc/matrix_transform.hpp>
-#include<gtc/type_ptr.hpp>
 
+#include"Vertex.h"
 
-static std::vector<Vertex> loadOBJ(const char* file_name)
+static std::vector<Vertex> LoadOBJ(const char* file_name)
 {
 	//Vertex portions
 	std::vector<glm::fvec3> vertex_positions;
@@ -58,23 +49,7 @@ static std::vector<Vertex> loadOBJ(const char* file_name)
 		ss.str(line);
 		ss >> prefix;
 
-		if (prefix == "#")
-		{
-
-		}
-		else if (prefix == "o")
-		{
-
-		}
-		else if (prefix == "s")
-		{
-
-		}
-		else if (prefix == "use_mtl")
-		{
-
-		}
-		else if (prefix == "v") //Vertex position
+		if (prefix == "v") //Vertex position
 		{
 			ss >> temp_vec3.x >> temp_vec3.y >> temp_vec3.z;
 			vertex_positions.push_back(temp_vec3);
@@ -119,10 +94,6 @@ static std::vector<Vertex> loadOBJ(const char* file_name)
 					counter = 0;
 			}
 		}
-		else
-		{
-
-		}
 	}
 
 	//Build final vertex array (mesh)
@@ -133,9 +104,7 @@ static std::vector<Vertex> loadOBJ(const char* file_name)
 	{
 		vertices[i].position = vertex_positions[vertex_position_indicies[i] - 1];
 		vertices[i].texcoord = vertex_texcoords[vertex_texcoord_indicies[i] - 1];
-		//vertices[i].texcoord = glm::vec2(0.f,0.f);
 		vertices[i].normal = vertex_normals[vertex_normal_indicies[i] - 1];
-		//vertices[i].normal = glm::vec3(0.f, 0.f, 0.f);
 		vertices[i].color = glm::vec3(1.f, 1.f, 1.f);
 	}
 

@@ -10,30 +10,25 @@
 class Model
 {
 private:
-	Material * material;
-	Texture* overrideTextureDiffuse;
-	Texture* overrideTextureSpecular;
+	Material* material;
+	Texture* textureDiffuse;
+	Texture* textureSpecular;
 	std::vector<Mesh*> meshes;
 	glm::vec3 position;
-
-	void updateUniforms()
-	{
-
-	}
 
 public:
 	Model(
 		glm::vec3 _position,
 		Material* _material,
-		Texture* _orTexDif,
-		Texture* _orTexSpec,
+		Texture* _textureDiffuse,
+		Texture* _textureSpecular,
 		std::vector<Vertex> mesh
 	)
 	{
 		position = _position;
 		material = _material;
-		overrideTextureDiffuse = _orTexDif;
-		overrideTextureSpecular = _orTexSpec;
+		textureDiffuse = _textureDiffuse;
+		textureSpecular = _textureSpecular;
 
 		SetMesh(mesh);
 	}
@@ -42,17 +37,17 @@ public:
 	Model(
 		glm::vec3 _position,
 		Material* _material,
-		Texture* _orTexDif,
-		Texture* _orTexSpec,
+		Texture* _textureDiffuse,
+		Texture* _textureSpecular,
 		const char* objFile
 	)
 	{
 		position = _position;
 		material = _material;
-		overrideTextureDiffuse = _orTexDif;
-		overrideTextureSpecular = _orTexSpec;
+		textureDiffuse = _textureDiffuse;
+		textureSpecular = _textureSpecular;
 
-		std::vector<Vertex> mesh = loadOBJ(objFile);
+		std::vector<Vertex> mesh = LoadOBJ(objFile);
 		SetMesh(mesh);
 	}
 
@@ -63,10 +58,10 @@ public:
 			glm::vec3(0.f),
 			glm::vec3(1.f)));
 
-		for (auto& i : this->meshes)
+		for (auto& i : meshes)
 		{
-			i->move(this->position);
-			i->setOrigin(this->position);
+			i->Move(position);
+			i->SetOrigin(position);
 		}
 	}
 
@@ -77,24 +72,16 @@ public:
 	}
 
 	//Functions
-	void rotate(const glm::vec3 rotation)
+	void Rotate(const glm::vec3 rotation)
 	{
 		for (auto& i : this->meshes)
-			i->rotate(rotation);
+			i->Rotate(rotation);
 	}
 
-	void update()
+	void Render(Shader* shader)
 	{
-
-	}
-
-	void render(Shader* shader)
-	{
-		//Update the uniforms
-		this->updateUniforms();
-
 		//Update uniforms
-		this->material->sendToShader(*shader);
+		material->SetUniforms(*shader);
 
 		//Use a program (BECAUSE SHADER CLASS LAST UNIFORM UPDATE UNUSES IT)
 		shader->Bind();
@@ -102,9 +89,9 @@ public:
 		//Draw
 		for (auto& i : this->meshes)
 		{
-			overrideTextureDiffuse->Bind(0);
-			overrideTextureSpecular->Bind(1);
-			i->render(shader); //Activates shader also
+			textureDiffuse->Bind(0);
+			textureSpecular->Bind(1);
+			i->Render(shader); //Activates shader also
 		}
 	}
 };

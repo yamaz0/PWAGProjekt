@@ -22,7 +22,7 @@ public:
 	}
 
 	//Functions
-	virtual void sendToShader(Shader& program) = 0;
+	virtual void SetUniforms(Shader& program) = 0;
 };
 
 class PointLight : public Light
@@ -49,12 +49,12 @@ public:
 
 	}
 
-	void setPosition(const glm::vec3 position)
+	void SetPosition(const glm::vec3 position)
 	{
 		this->position = position;
 	}
 
-	void sendToShader(Shader& shader)
+	void SetUniforms(Shader& shader)
 	{
 		shader.SetUniform3f("pointLight.position", position.x, position.y, position.z);
 		shader.SetUniform1f("pointLight.intensity", intensity);

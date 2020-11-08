@@ -1,11 +1,10 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include "GL/glew.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
-
 #include <vector>
+#include "Shader.h"
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -112,6 +111,11 @@ public:
 			Zoom = 45.0f;
 	}
 
+	void SetUniforms(Shader& shader)
+	{
+		shader.SetUniformMat4f("ViewMatrix", GetViewMatrix());
+	}
+
 private:
 	// calculates the front vector from the Camera's (updated) Euler Angles
 	void updateCameraVectors()
@@ -127,4 +131,3 @@ private:
 		Up = glm::normalize(glm::cross(Right, Front));
 	}
 };
-#endif
