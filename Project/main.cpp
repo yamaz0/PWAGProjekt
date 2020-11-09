@@ -13,6 +13,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Player.h"
 
 // ----------------------------------------------------------
 // Global Variables
@@ -24,7 +25,7 @@ std::vector<Model*> models;
 std::vector<PointLight*> pointLights;
 glm::vec3 lightPosition = glm::vec3(5.f);
 
-Camera camera(glm::vec3(5.0f, 3.0f, 16.0f));
+Camera camera(glm::vec3(5.0f, 5.0f, 16.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -36,6 +37,7 @@ Texture* treeTextureSpec;
 Texture* treeTextureDif;
 Texture* groundDif;
 Texture* groundSpec;
+Player* player;
 
 
 void InitializeMVP()
@@ -64,6 +66,7 @@ void LoadModels()
 			models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cube));
 		}
 	}
+	player = new Player(new Model(glm::vec3(5.0f, 3.0f, 16.0f), material, groundDif, groundSpec, cube));
 
 	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree));
 	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree));
@@ -115,6 +118,7 @@ void Display()
 	{
 		models[i]->Render(shader);
 	}
+	player->Render(shader);
 
 	glFlush();
 	glutSwapBuffers();
@@ -154,13 +158,25 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 	}
 
 	if (key == 'w')
-		camera.ProcessKeyboard(FORWARD, 0.1f);
+	{
+		camera.ProcessKeyboard(FORWARD, 0.4f);
+		player->Move(camera.GetFront(), 0.1f);
+	}
 	if (key == 's')
-		camera.ProcessKeyboard(BACKWARD, 0.1f);
+	{
+		camera.ProcessKeyboard(BACKWARD, 0.4f);
+		player->Move(-camera.GetFront(), 0.1f);
+	}
 	if (key == 'a')
-		camera.ProcessKeyboard(LEFT, 0.1f);
+	{
+		camera.ProcessKeyboard(LEFT, 0.4f);
+		player->Move(-camera.GetRight(), 0.1f);
+	}
 	if (key == 'd')
-		camera.ProcessKeyboard(RIGHT, 0.1f);
+	{
+		camera.ProcessKeyboard(RIGHT, 0.4f);
+		player->Move(camera.GetRight(), 0.1f);
+	}
 
 	glutPostRedisplay();
 }

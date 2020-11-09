@@ -5,14 +5,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <vector>
 #include "Shader.h"
-
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement {
-	FORWARD,
-	BACKWARD,
-	LEFT,
-	RIGHT
-};
+#include "Movement.h"
 
 // Default camera values
 const float YAW = -90.0f;
@@ -41,8 +34,12 @@ public:
 	float Zoom;
 
 	// constructor with vectors
-	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
 	{
+		Front = glm::vec3(0.0f, 0.0f, -1.0f);
+		MovementSpeed = SPEED;
+		MouseSensitivity = SENSITIVITY;
+		Zoom = ZOOM;
 		Position = position;
 		WorldUp = up;
 		Yaw = yaw;
@@ -50,8 +47,12 @@ public:
 		updateCameraVectors();
 	}
 	// constructor with scalar values
-	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+	Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) 
 	{
+		Front = glm::vec3(0.0f, 0.0f, -1.0f);
+		MovementSpeed = SPEED;
+		MouseSensitivity = SENSITIVITY;
+		Zoom = ZOOM;
 		Position = glm::vec3(posX, posY, posZ);
 		WorldUp = glm::vec3(upX, upY, upZ);
 		Yaw = yaw;
@@ -66,7 +67,7 @@ public:
 	}
 
 	// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-	void ProcessKeyboard(Camera_Movement direction, float deltaTime)
+	void ProcessKeyboard(Movement direction, float deltaTime)
 	{
 		float y = Position.y;
 		float velocity = MovementSpeed * deltaTime;
@@ -109,6 +110,9 @@ public:
 	{
 		shader.SetUniformMat4f("ViewMatrix", GetViewMatrix());
 	}
+
+	glm::vec3 GetFront() { return Front; }
+	glm::vec3 GetRight() { return Right; }
 
 private:
 	// calculates the front vector from the Camera's (updated) Euler Angles

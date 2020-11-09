@@ -13,7 +13,7 @@ private:
 	Material* material;
 	Texture* textureDiffuse;
 	Texture* textureSpecular;
-	std::vector<Mesh*> meshes;
+	Mesh* mesh;
 	glm::vec3 position;
 
 public:
@@ -51,31 +51,33 @@ public:
 		SetMesh(mesh);
 	}
 
-	void SetMesh(std::vector<Vertex> &mesh)
+	void SetMesh(std::vector<Vertex> &_mesh)
 	{
-		this->meshes.push_back(new Mesh(mesh.data(), mesh.size(), NULL, 0, glm::vec3(1.f, 0.f, 0.f),
-			glm::vec3(0.f),
-			glm::vec3(0.f),
-			glm::vec3(1.f)));
+		mesh = new Mesh(_mesh.data(), _mesh.size(), NULL, 0, glm::vec3(1.f, 0.f, 0.f),
+		glm::vec3(0.f),
+		glm::vec3(0.f),
+		glm::vec3(1.f));
 
-		for (auto& i : meshes)
-		{
-			i->Move(position);
-			i->SetOrigin(position);
-		}
+		mesh->Move(position);
+		mesh->SetOrigin(position);
 	}
 
 	~Model()
 	{
-		for (auto*& i : this->meshes)
-			delete i;
+		delete mesh;
 	}
 
 	//Functions
 	void Rotate(const glm::vec3 rotation)
 	{
-		for (auto& i : this->meshes)
-			i->Rotate(rotation);
+		mesh->Rotate(rotation);
+	}
+
+
+	//Functions
+	void Move(const glm::vec3 direction)
+	{
+		mesh->Move(direction);
 	}
 
 	void Render(Shader* shader)
@@ -87,11 +89,9 @@ public:
 		shader->Bind();
 
 		//Draw
-		for (auto& i : this->meshes)
-		{
-			textureDiffuse->Bind(0);
-			textureSpecular->Bind(1);
-			i->Render(shader); //Activates shader also
-		}
+		textureDiffuse->Bind(0);
+		textureSpecular->Bind(1);
+		mesh->Render(shader); //Activates shader also
+
 	}
 };
