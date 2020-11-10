@@ -15,6 +15,10 @@ private:
 	Texture* textureSpecular;
 	Mesh* mesh;
 	glm::vec3 position;
+	glm::vec3 origin;
+	glm::vec3 rotation;
+	glm::vec3 scale;
+	float size;
 
 public:
 	Model(
@@ -22,10 +26,17 @@ public:
 		Material* _material,
 		Texture* _textureDiffuse,
 		Texture* _textureSpecular,
-		std::vector<Vertex> mesh
-	)
+		std::vector<Vertex> mesh,
+		float _size = 1.0f,
+		glm::vec3 _origin = glm::vec3(0.f),
+		glm::vec3 _rotation = glm::vec3(0.f),
+		glm::vec3 _scale = glm::vec3(1.f))
 	{
 		position = _position;
+		size = _size;
+		origin = _origin;
+		rotation = _rotation;
+		scale = _scale;
 		material = _material;
 		textureDiffuse = _textureDiffuse;
 		textureSpecular = _textureSpecular;
@@ -34,64 +45,101 @@ public:
 	}
 
 	//OBJ file loaded model
-	Model(
-		glm::vec3 _position,
-		Material* _material,
-		Texture* _textureDiffuse,
-		Texture* _textureSpecular,
-		const char* objFile
-	)
-	{
-		position = _position;
-		material = _material;
-		textureDiffuse = _textureDiffuse;
-		textureSpecular = _textureSpecular;
-
-		std::vector<Vertex> mesh = LoadOBJ(objFile);
-		SetMesh(mesh);
-	}
+	//Model(
+	//	glm::vec3 _position,
+	//	Material* _material,
+	//	Texture* _textureDiffuse,
+	//	Texture* _textureSpecular,
+	//	const char* objFile,
+	//	float _size = 1.0f,
+	//	glm::vec3 _origin = glm::vec3(0.f),
+	//	glm::vec3 _rotation = glm::vec3(0.f),
+	//	glm::vec3 _scale = glm::vec3(1.f))
+	//{
+	//	position = _position;
+	//	size = _size;
+	//	origin = _origin;
+	//	rotation = _rotation;
+	//	scale = _scale;
+	//	material = _material;
+	//	textureDiffuse = _textureDiffuse;
+	//	textureSpecular = _textureSpecular;
+	//	std::vector<Vertex> mesh = LoadOBJ(objFile);
+	//	SetMesh(mesh);
+	//}
 
 	void SetMesh(std::vector<Vertex> &_mesh)
 	{
-		mesh = new Mesh(_mesh.data(), _mesh.size(), NULL, 0, glm::vec3(1.f, 0.f, 0.f),
-		glm::vec3(0.f),
-		glm::vec3(0.f),
-		glm::vec3(1.f));
+		mesh = new Mesh(_mesh.data(), _mesh.size(), NULL, 0);
 
-		mesh->Move(position);
-		mesh->SetOrigin(position);
+		Move(position);
+		SetOrigin(position);
 	}
 
 	~Model()
 	{
+		delete material;
+		delete textureDiffuse;
+		delete textureSpecular;
 		delete mesh;
 	}
-
-	//Functions
-	void Rotate(const glm::vec3 rotation)
+	
+	//Modifiers
+	void SetSize(float value)
 	{
-		mesh->Rotate(rotation);
+		size = value;
 	}
 
+	void SetPosition(const glm::vec3 _position)
+	{
+		position = _position;
+	}
+
+	void SetOrigin(const glm::vec3 _origin)
+	{
+		origin = _origin;
+	}
+
+	void SetRotation(const glm::vec3 _rotation)
+	{
+		rotation = _rotation;
+	}
+
+	void SetScale(const glm::vec3 setScale)
+	{
+		scale = scale;
+	}
 
 	//Functions
-	void Move(const glm::vec3 direction)
+	void Move(const glm::vec3 _position)
 	{
-		mesh->Move(direction);
+		position += _position;
+	}
+
+	void Rotate(const glm::vec3 _rotation)
+	{
+		rotation += _rotation;
+	}
+
+	void ScaleUp(const glm::vec3 _scale)
+	{
+		scale += _scale;
 	}
 
 	void Render(Shader* shader)
 	{
-		//Update uniforms
-		material->SetUniforms(*shader);
-
-		//Use a program (BECAUSE SHADER CLASS LAST UNIFORM UPDATE UNUSES IT)
 		shader->Bind();
 
-		//Draw
+		material->SetUniforms(*shader);
+
 		textureDiffuse->Bind(0);
 		textureSpecular->Bind(1);
-		mesh->Render(shader); //Activates shader also
 
+		mesh->UpdateModelMatrix(position, origin, rotation, scale);
+		mesh->SetUniforms(shader);
+		mesh->Render(shader); 
 	}
+
+	float GetSize() { return size; }
+	glm::vec3 GetPosition() { return position; }
 };

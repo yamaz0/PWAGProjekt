@@ -22,7 +22,7 @@ public:
 	}
 
 	//Functions
-	virtual void SetUniforms(Shader& program) = 0;
+	virtual void SetUniforms(Shader* shader) = 0;
 };
 
 class PointLight : public Light
@@ -54,13 +54,13 @@ public:
 		this->position = position;
 	}
 
-	void SetUniforms(Shader& shader)
+	void SetUniforms(Shader* shader)
 	{
-		shader.SetUniform3f("pointLight.position", position.x, position.y, position.z);
-		shader.SetUniform1f("pointLight.intensity", intensity);
-		shader.SetUniform3f("pointLight.color", color.x, color.y, color.z);
-		shader.SetUniform1f("pointLight.constant", constant);
-		shader.SetUniform1f("pointLight.linear", linear);
-		shader.SetUniform1f("pointLight.quadratic", quadratic);
+		shader->SetUniform3f("pointLight.position", position.x, position.y, position.z);
+		shader->SetUniform1f("pointLight.intensity", intensity);
+		shader->SetUniform3f("pointLight.color", color.x, color.y, color.z);
+		shader->SetUniform1f("pointLight.constant", constant);
+		shader->SetUniform1f("pointLight.linear", linear);
+		shader->SetUniform1f("pointLight.quadratic", quadratic);
 	}
 };

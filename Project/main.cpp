@@ -25,7 +25,8 @@ std::vector<Model*> models;
 std::vector<PointLight*> pointLights;
 glm::vec3 lightPosition = glm::vec3(5.f);
 
-Camera camera(glm::vec3(5.0f, 5.0f, 16.0f));
+//Camera camera(glm::vec3(5.0f, 5.0f, 16.0f));
+Camera camera(glm::vec3(4.0f, 10.0f, 4.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -46,7 +47,7 @@ void InitializeMVP()
 	
 	shader->Bind();
 	shader->SetUniformMat4f("ProjectionMatrix", proj);
-	camera.SetUniforms(*shader);
+	camera.SetUniforms(shader);
 }
 
 void LoadShaders()
@@ -63,14 +64,14 @@ void LoadModels()
 	{
 		for (int j = 0; j < 10; j++)
 		{
-			models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cube));
+			models.push_back(new Model(glm::vec3(i*1.f, 0, j * 1.f), material, groundDif, groundSpec, cube));
 		}
 	}
-	player = new Player(new Model(glm::vec3(5.0f, 3.0f, 16.0f), material, groundDif, groundSpec, cube));
+	player = new Player(new Model(glm::vec3(2.0f, 1.0f, 2.0f), material, groundDif, groundSpec, cube, 2));
 
-	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree));
-	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree));
-	models.push_back(new Model(glm::vec3(3, 0.5f, 5), material, treeTextureDif, treeTextureSpec, tree));
+	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree, 1));
+	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree, 1));
+	models.push_back(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, tree, 1));
 }
 
 void LoadMaterials()
@@ -111,14 +112,19 @@ void Display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	shader->Bind();
-	camera.SetUniforms(*shader);
-	pointLights[0]->SetUniforms(*shader);
+	camera.SetUniforms(shader);
+	pointLights[0]->SetUniforms(shader);
 
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i]->Render(shader);
 	}
 	player->Render(shader);
+
+	if (player->SphereRectCollision(models[102]))
+	{
+		std::cout << "kolizja" << std::endl;
+	}
 
 	glFlush();
 	glutSwapBuffers();

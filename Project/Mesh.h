@@ -20,10 +20,7 @@ private:
 	GLuint VBO;
 	GLuint EBO;
 	
-	glm::vec3 position;
-	glm::vec3 origin;
-	glm::vec3 rotation;
-	glm::vec3 scale;
+	//glm::vec3 size;
 
 	glm::mat4 ModelMatrix;
 
@@ -64,12 +61,14 @@ private:
 		glBindVertexArray(0);
 	}
 
-	void UpdateUniforms(Shader* shader)
+
+public:
+	void SetUniforms(Shader* shader)
 	{
 		shader->SetUniformMat4f("ModelMatrix", ModelMatrix);
 	}
 
-	void UpdateModelMatrix()
+	void UpdateModelMatrix(glm::vec3 position, glm::vec3 origin, glm::vec3 rotation, glm::vec3 scale)
 	{
 		ModelMatrix = glm::mat4(1.f);
 		ModelMatrix = glm::translate(ModelMatrix, origin);
@@ -79,23 +78,17 @@ private:
 		ModelMatrix = glm::translate(ModelMatrix, position - origin);
 		ModelMatrix = glm::scale(ModelMatrix, scale);
 	}
+	//glm::vec3 GetSize()
+	//{
+	//	return size;
+	//}
 
-public:
 	Mesh(
 		Vertex* _vertexArray,
 		const unsigned& _nrOfVertices,
 		GLuint* _indexArray,
-		const unsigned& _nrOfIndices,
-		glm::vec3 _position = glm::vec3(0.f),
-		glm::vec3 _origin = glm::vec3(0.f),
-		glm::vec3 _rotation = glm::vec3(0.f),
-		glm::vec3 _scale = glm::vec3(1.f))
+		const unsigned& _nrOfIndices)
 	{
-		position = _position;
-		origin = _origin;
-		rotation = _rotation;
-		scale = _scale;
-
 		nrOfVertices = _nrOfVertices;
 		nrOfIndices = _nrOfIndices;
 
@@ -112,7 +105,6 @@ public:
 		}
 
 		InitVAO();
-		UpdateModelMatrix();
 	}
 
 	~Mesh()
@@ -129,49 +121,8 @@ public:
 		delete[] indexArray;
 	}
 
-	//Modifiers
-	void SetPosition(const glm::vec3 _position)
-	{
-		position = _position;
-	}
-
-	void SetOrigin(const glm::vec3 _origin)
-	{
-		origin = _origin;
-	}
-
-	void SetRotation(const glm::vec3 _rotation)
-	{
-		rotation = _rotation;
-	}
-
-	void SetScale(const glm::vec3 setScale)
-	{
-		scale = scale;
-	}
-
-	//Functions
-	void Move(const glm::vec3 _position)
-	{
-		position += _position;
-	}
-
-	void Rotate(const glm::vec3 _rotation)
-	{
-		rotation += _rotation;
-	}
-
-	void ScaleUp(const glm::vec3 _scale)
-	{
-		scale += _scale;
-	}
-
 	void Render(Shader* shader)
-	{
-		//Update uniforms
-		UpdateModelMatrix();
-		UpdateUniforms(shader);
-		
+	{		
 		//Bind VAO
 		glBindVertexArray(VAO);
 		shader->Bind();

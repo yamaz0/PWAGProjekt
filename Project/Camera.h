@@ -106,9 +106,9 @@ public:
 		updateCameraVectors();
 	}
 
-	void SetUniforms(Shader& shader)
+	void SetUniforms(Shader* shader)
 	{
-		shader.SetUniformMat4f("ViewMatrix", GetViewMatrix());
+		shader->SetUniformMat4f("ViewMatrix", GetViewMatrix());
 	}
 
 	glm::vec3 GetFront() { return Front; }
