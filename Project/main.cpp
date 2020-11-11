@@ -36,8 +36,10 @@ Shader *shader;
 Material* material;
 Texture* treeTextureSpec;
 Texture* treeTextureDif;
-Texture* groundDif;
 Texture* groundSpec;
+Texture* groundDif;
+Texture* playerSpec;
+Texture* playerDif;
 Player* player;
 
 
@@ -55,25 +57,6 @@ void LoadShaders()
 	shader = new Shader("Shader.shader");
 }
 
-void LoadModels()
-{
-	std::vector<Vertex> tree = LoadOBJ("OBJ/tree.obj");
-	std::vector<Vertex> cube = LoadOBJ("OBJ/cube.obj");
-
-	for (int i = 0; i < 10; i++)
-	{
-		for (int j = 0; j < 10; j++)
-		{
-			models.push_back(new Model(glm::vec3(i*1.f, 0, j * 1.f), material, groundDif, groundSpec, cube));
-		}
-	}
-	player = new Player(new Model(glm::vec3(2.0f, 1.0f, 2.0f), material, groundDif, groundSpec, cube, 2));
-
-	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree, 1));
-	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, tree, 1));
-	models.push_back(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, tree, 1));
-}
-
 void LoadMaterials()
 {
 	material = new Material(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f));
@@ -83,8 +66,31 @@ void LoadTextures()
 {
 	treeTextureSpec = new Texture("Textures/treeTextureSpec.png");
 	treeTextureDif = new Texture("Textures/treeTextureDif.png");
-	groundDif = new Texture("Textures/groundDif.png");
 	groundSpec = new Texture("Textures/groundSpec.png");
+	groundDif = new Texture("Textures/groundDif.png");
+	playerSpec = new Texture("Textures/playerSpec.png");
+	playerDif = new Texture("Textures/playerDif.png");
+}
+
+void LoadModels()
+{
+	std::vector<Vertex> treeObj = LoadOBJ("OBJ/tree.obj");
+	std::vector<Vertex> cubeObj = LoadOBJ("OBJ/cube.obj");
+	std::vector<Vertex> playerObj = LoadOBJ("OBJ/player.obj");
+
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			models.push_back(new Model(glm::vec3(i*1.f, 0, j * 1.f), material, groundDif, groundSpec, cubeObj));
+		}
+	}
+
+	player = new Player(new Model(glm::vec3(2.0f, 1.0f, 2.0f), material, playerDif, playerSpec, playerObj, 1));
+
+	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 1));
+	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 1));
+	models.push_back(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, treeObj, 1));
 }
 
 void Setup()
@@ -257,6 +263,9 @@ int main(int argc, char* argv[])
 	delete treeTextureDif;
 	delete groundDif;
 	delete groundSpec;
+	delete playerSpec;
+	delete playerDif;
+
 	return 0;
 
 }
