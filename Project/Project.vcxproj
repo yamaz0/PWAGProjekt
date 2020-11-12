@@ -139,7 +139,6 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="Movement.h" />
     <ClInclude Include="OBJLoader.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Shader.h" />

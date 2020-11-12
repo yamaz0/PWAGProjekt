@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Model.h"
-#include "Movement.h"
 
 class Player
 {
@@ -17,10 +16,10 @@ public:
 		movementSpeed = _movementSpeed;
 	}
 
-	void Move(const glm::vec3 direction, float deltaTime)
+	void Move(glm::vec3 direction)
 	{
-		glm::vec3 velocity = direction * movementSpeed * deltaTime;
-		model->Move(glm::vec3(direction.x, 0, direction.z));
+		glm::vec3 velocity = direction * movementSpeed;
+		model->Move(glm::vec3(velocity.x, 0, velocity.z));
 	}
 
 	bool SphereRectCollision(Model* _model)

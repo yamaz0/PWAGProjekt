@@ -21,6 +21,9 @@
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+float deltaTime = 0.1f;
+
 std::vector<Model*> models;
 std::vector<PointLight*> pointLights;
 glm::vec3 lightPosition = glm::vec3(5.f);
@@ -136,6 +139,13 @@ void Display()
 	glutSwapBuffers();
 }
 
+void PlayerMove(glm::vec3 cameraDirection)
+{
+	glm::vec3 direction = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
+	camera.Move(direction);
+	player->Move(direction);
+}
+
 // ----------------------------------------------------------
 // specialKeys() Callback Function
 // ----------------------------------------------------------
@@ -169,25 +179,31 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
+	float deltaTime = 0.1f;
+
 	if (key == 'w')
 	{
-		camera.ProcessKeyboard(FORWARD, 0.4f);
-		player->Move(camera.GetFront(), 0.1f);
+		PlayerMove(camera.GetFront());
+		//camera.ProcessKeyboard(FORWARD, deltaTime);
+		//player->Move(camera.GetFront(), deltaTime);
 	}
 	if (key == 's')
 	{
-		camera.ProcessKeyboard(BACKWARD, 0.4f);
-		player->Move(-camera.GetFront(), 0.1f);
+		PlayerMove(-camera.GetFront());
+		//camera.ProcessKeyboard(BACKWARD, deltaTime);
+		//player->Move(-camera.GetFront(), deltaTime);
 	}
 	if (key == 'a')
 	{
-		camera.ProcessKeyboard(LEFT, 0.4f);
-		player->Move(-camera.GetRight(), 0.1f);
+		PlayerMove(-camera.GetRight());
+		//camera.ProcessKeyboard(LEFT, deltaTime);
+		//player->Move(-camera.GetRight(), deltaTime);
 	}
 	if (key == 'd')
 	{
-		camera.ProcessKeyboard(RIGHT, 0.4f);
-		player->Move(camera.GetRight(), 0.1f);
+		PlayerMove(camera.GetRight());
+		//camera.ProcessKeyboard(RIGHT, deltaTime);
+		//player->Move(camera.GetRight(), deltaTime);
 	}
 
 	glutPostRedisplay();

@@ -5,7 +5,6 @@
 #include <gtc/matrix_transform.hpp>
 #include <vector>
 #include "Shader.h"
-#include "Movement.h"
 
 // Default camera values
 const float YAW = -90.0f;
@@ -66,22 +65,10 @@ public:
 		return glm::lookAt(Position, Position + Front, Up);
 	}
 
-	// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-	void ProcessKeyboard(Movement direction, float deltaTime)
+	void Move(glm::vec3 direction)
 	{
-		float y = Position.y;
-		float velocity = MovementSpeed * deltaTime;
-
-		if (direction == FORWARD)
-			Position += Front * velocity;
-		if (direction == BACKWARD)
-			Position -= Front * velocity;
-		if (direction == LEFT)
-			Position -= Right * velocity;
-		if (direction == RIGHT)
-			Position += Right * velocity;
-
-		Position.y = y;
+		glm::vec3 velocity = direction * MovementSpeed;
+		Position += velocity;
 	}
 
 	// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
