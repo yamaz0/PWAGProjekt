@@ -1,18 +1,16 @@
 #pragma once
 
 #include "Model.h"
+#include "GameObject.h"
 
-class Player
+class Player: public GameObject
 {
 private:
-	Model* model;
 	float movementSpeed;
-
 public:
 
-	Player(Model* _model, float _movementSpeed = SPEED)
+	Player(Model* _model, float _movementSpeed = SPEED):GameObject(_model)
 	{
-		model = _model;
 		movementSpeed = _movementSpeed;
 	}
 
@@ -28,11 +26,4 @@ public:
 		float modelsRSum = _model->GetSize() + model->GetSize();
 		return distance <= modelsRSum;
 	}
-
-	void Render(Shader* shader)
-	{
-		model->Render(shader);
-	}
-
-	Model* GetModel() { return model; }
 };

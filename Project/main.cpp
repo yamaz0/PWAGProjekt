@@ -14,6 +14,11 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Player.h"
+#include "GameObject.h"
+#include "Obstacle.h"
+
+
+void PlayerMove(glm::vec3 cameraDirection);
 
 // ----------------------------------------------------------
 // Global Variables
@@ -23,13 +28,16 @@ const unsigned int SCR_HEIGHT = 600;
 
 
 float deltaTime = 0.1f;
+glm::vec3 playerMoveDirection;
 
 std::vector<Model*> models;
+std::vector<GameObject*> gameObjects;
+std::vector<Obstacle*> obstacles;
 std::vector<PointLight*> pointLights;
 glm::vec3 lightPosition = glm::vec3(5.f);
 
 //Camera camera(glm::vec3(5.0f, 5.0f, 16.0f));
-Camera camera(glm::vec3(4.0f, 10.0f, 4.0f));
+Camera camera(glm::vec3(8.0f, 4.0f,8.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -85,15 +93,15 @@ void LoadModels()
 	{
 		for (int j = 0; j < 10; j++)
 		{
-			models.push_back(new Model(glm::vec3(i*1.f, 0, j * 1.f), material, groundDif, groundSpec, cubeObj));
+			models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
 		}
 	}
 
-	player = new Player(new Model(glm::vec3(2.0f, 1.0f, 2.0f), material, playerDif, playerSpec, playerObj, 1));
+	player = new Player(new Model(glm::vec3(8.0f, 1.0f, 8.0f), material, playerDif, playerSpec, playerObj, 1));
 
-	models.push_back(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 1));
-	models.push_back(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 1));
-	models.push_back(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, treeObj, 1));
+	gameObjects.push_back(new GameObject(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
+	gameObjects.push_back(new GameObject(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
+	gameObjects.push_back(new GameObject(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
 }
 
 void Setup()
@@ -124,16 +132,35 @@ void Display()
 	camera.SetUniforms(shader);
 	pointLights[0]->SetUniforms(shader);
 
+	for (int i = 0; i < obstacles.size(); i++)
+	{
+		obstacles[i]->Update();
+
+		if (player->SphereRectCollision(obstacles[i]->GetModel()))
+		{
+			//przegrywanko
+			return;
+		}
+	}	for (int i = 0; i < gameObjects.size(); i++)
+	{
+		if (player->SphereRectCollision(gameObjects[i]->GetModel()))
+		{
+			PlayerMove(-playerMoveDirection);
+			return;
+		}
+	}
+
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i]->Render(shader);
 	}
-	player->Render(shader);
-
-	if (player->SphereRectCollision(models[102]))
+	for (int i = 0; i < gameObjects.size(); i++)
 	{
-		std::cout << "kolizja" << std::endl;
+		gameObjects[i]->Render(shader);
 	}
+
+
+	player->Render(shader);
 
 	glFlush();
 	glutSwapBuffers();
@@ -141,9 +168,9 @@ void Display()
 
 void PlayerMove(glm::vec3 cameraDirection)
 {
-	glm::vec3 direction = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
-	camera.Move(direction);
-	player->Move(direction);
+	playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
+	camera.Move(playerMoveDirection);
+	player->Move(playerMoveDirection);
 }
 
 // ----------------------------------------------------------

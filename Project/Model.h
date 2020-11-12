@@ -72,7 +72,7 @@ public:
 	{
 		mesh = new Mesh(_mesh.data(), _mesh.size(), NULL, 0);
 
-		Move(position);
+		SetPosition(position);
 		SetOrigin(position);
 	}
 
