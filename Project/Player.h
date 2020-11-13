@@ -19,11 +19,4 @@ public:
 		glm::vec3 velocity = direction * movementSpeed;
 		model->Move(glm::vec3(velocity.x, 0, velocity.z));
 	}
-
-	bool SphereRectCollision(Model* _model)
-	{
-		float distance = glm::distance(model->GetPosition(), _model->GetPosition());
-		float modelsRSum = _model->GetSize() + model->GetSize();
-		return distance <= modelsRSum;
-	}
 };

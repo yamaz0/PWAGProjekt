@@ -17,7 +17,6 @@
 #include "GameObject.h"
 #include "Obstacle.h"
 
-
 void PlayerMove(glm::vec3 cameraDirection);
 
 // ----------------------------------------------------------
@@ -26,8 +25,8 @@ void PlayerMove(glm::vec3 cameraDirection);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-
-float deltaTime = 0.1f;
+float deltaTime = 0.0f;
+float time = 0.0f;
 glm::vec3 playerMoveDirection;
 
 std::vector<Model*> models;
@@ -36,8 +35,7 @@ std::vector<Obstacle*> obstacles;
 std::vector<PointLight*> pointLights;
 glm::vec3 lightPosition = glm::vec3(5.f);
 
-//Camera camera(glm::vec3(5.0f, 5.0f, 16.0f));
-Camera camera(glm::vec3(8.0f, 4.0f,8.0f));
+Camera* camera;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -52,15 +50,43 @@ Texture* groundDif;
 Texture* playerSpec;
 Texture* playerDif;
 Player* player;
+GameObject* end;
 
+int mapGrounds[10][10] =
+{
+	{1,1,1,1,1,1,1,1,1,1},
+	{1,1,0,0,0,0,0,0,1,1},
+	{1,1,0,1,0,0,1,0,1,1},
+	{1,1,0,0,0,0,0,0,1,1},
+	{1,1,0,0,0,0,0,0,1,1},
+	{1,1,0,1,0,0,1,0,1,1},
+	{1,1,0,0,0,0,0,0,1,1},
+	{1,1,0,0,0,0,0,0,1,1},
+	{1,1,0,1,0,0,1,0,1,1},
+	{1,1,0,0,0,0,0,0,1,1}
+};
+
+int mapObjects[10][10] =
+{
+	{0,0,0,0,0,0,0,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0},
+	{2,0,0,2,0,0,2,0,0,2},
+	{0,0,0,0,0,0,0,0,0,3},
+	{0,0,0,0,0,0,0,0,0,0},
+	{0,3,0,2,0,0,2,0,0,0},
+	{0,0,0,0,0,0,0,0,0,0},
+	{0,3,0,0,0,0,0,0,0,0},
+	{0,0,0,2,0,0,2,0,0,3},
+	{1,0,0,0,0,0,0,0,0,9}
+};
 
 void InitializeMVP()
 {
-	glm::mat4 proj = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 proj = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	
 	shader->Bind();
 	shader->SetUniformMat4f("ProjectionMatrix", proj);
-	camera.SetUniforms(shader);
+	camera->SetUniforms(shader);
 }
 
 void LoadShaders()
@@ -88,20 +114,37 @@ void LoadModels()
 	std::vector<Vertex> treeObj = LoadOBJ("OBJ/tree.obj");
 	std::vector<Vertex> cubeObj = LoadOBJ("OBJ/cube.obj");
 	std::vector<Vertex> playerObj = LoadOBJ("OBJ/player.obj");
+	std::vector<Vertex> spikeObj = LoadOBJ("OBJ/spikes.obj");
+	std::vector<Vertex> endObj = LoadOBJ("OBJ/end.obj");
 
 	for (int i = 0; i < 10; i++)
 	{
 		for (int j = 0; j < 10; j++)
 		{
-			models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
+			if (mapGrounds[j][i] == 1)
+			{
+				models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
+			}
+
+			if (mapObjects[j][i] == 1)
+			{
+				player = new Player(new Model(glm::vec3(i*2.f, 1, j * 2.f), material, playerDif, playerSpec, playerObj, 1));
+				camera = new Camera(glm::vec3(i*2.f, 4.5f, j * 2.f));
+			}
+			if (mapObjects[j][i] == 2)
+			{
+				gameObjects.push_back(new GameObject(new Model(glm::vec3(i*2.f, 0.5f, j * 2.f), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
+			}
+			if (mapObjects[j][i] == 3)
+			{
+				obstacles.push_back(new Obstacle(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, spikeObj, 1.0f)));
+			}
+			if (mapObjects[j][i] == 9)
+			{
+				end = new GameObject(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, endObj, 0.5f));
+			}
 		}
 	}
-
-	player = new Player(new Model(glm::vec3(8.0f, 1.0f, 8.0f), material, playerDif, playerSpec, playerObj, 1));
-
-	gameObjects.push_back(new GameObject(new Model(glm::vec3(1, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
-	gameObjects.push_back(new GameObject(new Model(glm::vec3(5, 0.5f, 1), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
-	gameObjects.push_back(new GameObject(new Model(glm::vec3(5, 0.5f, 5), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
 }
 
 void Setup()
@@ -125,12 +168,21 @@ void Setup()
 // ----------------------------------------------------------
 void Display()
 {
-	//  Clear screen and Z-buffer
+	float timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
+	deltaTime = (timeSinceStart - time)/1000;
+	time = timeSinceStart;
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	shader->Bind();
-	camera.SetUniforms(shader);
+	camera->SetUniforms(shader);
 	pointLights[0]->SetUniforms(shader);
+
+	if (player->SphereRectCollision(end->GetModel()))
+	{
+		//wygranko
+		std::cout << "wygranko" << std::endl; // tymczasowo to a potem niewiem
+	}
 
 	for (int i = 0; i < obstacles.size(); i++)
 	{
@@ -139,28 +191,32 @@ void Display()
 		if (player->SphereRectCollision(obstacles[i]->GetModel()))
 		{
 			//przegrywanko
+			PlayerMove(-playerMoveDirection); // tymczasowo to a potem reset albo cos
 			return;
 		}
-	}	for (int i = 0; i < gameObjects.size(); i++)
+
+		obstacles[i]->Render(shader);
+	}
+
+	for (int i = 0; i < gameObjects.size(); i++)
 	{
 		if (player->SphereRectCollision(gameObjects[i]->GetModel()))
 		{
 			PlayerMove(-playerMoveDirection);
 			return;
 		}
+
+		gameObjects[i]->Render(shader);
 	}
 
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i]->Render(shader);
 	}
-	for (int i = 0; i < gameObjects.size(); i++)
-	{
-		gameObjects[i]->Render(shader);
-	}
 
 
 	player->Render(shader);
+	end->Render(shader);
 
 	glFlush();
 	glutSwapBuffers();
@@ -169,7 +225,7 @@ void Display()
 void PlayerMove(glm::vec3 cameraDirection)
 {
 	playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
-	camera.Move(playerMoveDirection);
+	camera->Move(playerMoveDirection);
 	player->Move(playerMoveDirection);
 }
 
@@ -205,32 +261,22 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-
-	float deltaTime = 0.1f;
-
+	
 	if (key == 'w')
 	{
-		PlayerMove(camera.GetFront());
-		//camera.ProcessKeyboard(FORWARD, deltaTime);
-		//player->Move(camera.GetFront(), deltaTime);
+		PlayerMove(camera->GetFront());
 	}
 	if (key == 's')
 	{
-		PlayerMove(-camera.GetFront());
-		//camera.ProcessKeyboard(BACKWARD, deltaTime);
-		//player->Move(-camera.GetFront(), deltaTime);
+		PlayerMove(-camera->GetFront());
 	}
 	if (key == 'a')
 	{
-		PlayerMove(-camera.GetRight());
-		//camera.ProcessKeyboard(LEFT, deltaTime);
-		//player->Move(-camera.GetRight(), deltaTime);
+		PlayerMove(-camera->GetRight());
 	}
 	if (key == 'd')
 	{
-		PlayerMove(camera.GetRight());
-		//camera.ProcessKeyboard(RIGHT, deltaTime);
-		//player->Move(camera.GetRight(), deltaTime);
+		PlayerMove(camera->GetRight());
 	}
 
 	glutPostRedisplay();
@@ -259,7 +305,7 @@ void MouseMoveHandler(int x, int y)
 	lastX = x;
 	lastY = y;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	camera->ProcessMouseMovement(xoffset, yoffset);
 	glutPostRedisplay();
 }
 
@@ -308,7 +354,8 @@ int main(int argc, char* argv[])
 	delete groundSpec;
 	delete playerSpec;
 	delete playerDif;
-
+	delete player;
+	delete end;
+	delete camera;
 	return 0;
-
 }
