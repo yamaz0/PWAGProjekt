@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include"Mesh.h"
@@ -41,6 +40,7 @@ public:
 		textureDiffuse = _textureDiffuse;
 		textureSpecular = _textureSpecular;
 
+		if(mesh.empty() == false)
 		SetMesh(mesh);
 	}
 
@@ -130,10 +130,10 @@ public:
 	{
 		shader->Bind();
 
-		material->SetUniforms(*shader);
-
 		textureDiffuse->Bind(0);
 		textureSpecular->Bind(1);
+
+		material->SetUniforms(*shader);
 
 		mesh->UpdateModelMatrix(position, origin, rotation, scale);
 		mesh->SetUniforms(shader);

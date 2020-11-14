@@ -38,7 +38,7 @@ public:
 		shader.SetUniform3f("material.ambient", ambient.x, ambient.y, ambient.z);
 		shader.SetUniform3f("material.diffuse", diffuse.x, diffuse.y, diffuse.z);
 		shader.SetUniform3f("material.specular", specular.x, ambient.y, ambient.z);
-		shader.SetUniform1f("material.diffuseTex", 0);
-		shader.SetUniform1f("material.specularTex", 1);
+		shader.SetUniform1i("material.diffuseTex", 0);
+		shader.SetUniform1i("material.specularTex", 1);
 	}
 };

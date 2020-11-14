@@ -19,21 +19,39 @@
 
 void PlayerMove(glm::vec3 cameraDirection);
 
+void RestartPlayerPosition();
+
 // ----------------------------------------------------------
 // Global Variables
 // ----------------------------------------------------------
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+const float CAMERA_Y = 8.0f;
+
+const int MAP_SIZE = 12;
+const int MAP_GROUND = 1;
+const int MAP_BOUND = -1;
+const int MAP_START = 1;
+const int MAP_TREE = 2;
+const int MAP_OBSTACLE = 3;
+const int MAP_END = 9;
+
+const float LIGHT_AMBIENT = 0.8f;
+const float LIGHT_DIFFUSE = 1.f;
+const float LIGHT_SPECULAR = 1.f;
+
 float deltaTime = 0.0f;
 float time = 0.0f;
 glm::vec3 playerMoveDirection;
 
-std::vector<Model*> models;
+std::vector<Model*> groundObjects;
 std::vector<GameObject*> gameObjects;
-std::vector<Obstacle*> obstacles;
+std::vector<GameObject*> boundsObjects;
+std::vector<Obstacle*> obstacleObjects;
 std::vector<PointLight*> pointLights;
-glm::vec3 lightPosition = glm::vec3(5.f);
+glm::vec3 lightPosition = glm::vec3(0.f);
+glm::vec3 startPosition = glm::vec3(0.f);
 
 Camera* camera;
 float lastX = SCR_WIDTH / 2.0f;
@@ -52,32 +70,35 @@ Texture* playerDif;
 Player* player;
 GameObject* end;
 
-int mapGrounds[10][10] =
+int mapGrounds[MAP_SIZE][MAP_SIZE] =
 {
-	{1,1,1,1,1,1,1,1,1,1},
-	{1,1,0,0,0,0,0,0,1,1},
-	{1,1,0,1,0,0,1,0,1,1},
-	{1,1,0,0,0,0,0,0,1,1},
-	{1,1,0,0,0,0,0,0,1,1},
-	{1,1,0,1,0,0,1,0,1,1},
-	{1,1,0,0,0,0,0,0,1,1},
-	{1,1,0,0,0,0,0,0,1,1},
-	{1,1,0,1,0,0,1,0,1,1},
-	{1,1,0,0,0,0,0,0,1,1}
+	{0,0,0,0,0,0,0,0,0,0,0,0},
+	{0,1,1,1,1,1,1,1,1,1,1,0},
+	{0,1,1,0,0,0,0,0,0,1,1,0},
+	{0,1,1,0,1,0,0,1,0,1,1,0},
+	{0,1,1,0,0,0,0,0,0,1,1,0},
+	{0,1,1,0,0,0,0,0,0,1,1,0},
+	{0,1,1,0,1,0,0,1,0,1,1,0},
+	{0,1,1,0,0,0,0,0,0,1,1,0},
+	{0,1,1,0,0,0,0,0,0,1,1,0},
+	{0,1,1,0,1,0,0,1,0,1,1,0},
+	{0,0,0,0,0,0,0,0,0,0,0,0}
 };
 
-int mapObjects[10][10] =
+int mapObjects[MAP_SIZE][MAP_SIZE] =
 {
-	{0,0,0,0,0,0,0,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0},
-	{2,0,0,2,0,0,2,0,0,2},
-	{0,0,0,0,0,0,0,0,0,3},
-	{0,0,0,0,0,0,0,0,0,0},
-	{0,3,0,2,0,0,2,0,0,0},
-	{0,0,0,0,0,0,0,0,0,0},
-	{0,3,0,0,0,0,0,0,0,0},
-	{0,0,0,2,0,0,2,0,0,3},
-	{1,0,0,0,0,0,0,0,0,9}
+	{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+	{-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-1},
+	{-1, 0, 0,-1,-1,-1,-1,-1,-1, 0, 0,-1},
+	{-1, 2, 0,-1, 2, 0, 0, 2,-1, 0, 2,-1},
+	{-1, 0, 0,-1, 0, 0, 0, 0,-1, 0, 3,-1},
+	{-1, 0, 0,-1, 0, 0, 0, 0,-1, 0, 0,-1},
+	{-1, 0, 3,-1, 2, 0, 0, 2,-1, 0, 0,-1},
+	{-1, 0, 0,-1, 0, 0, 0, 0,-1, 0, 0,-1},
+	{-1, 0, 3,-1, 0, 0, 0, 0,-1, 0, 0,-1},
+	{-1, 0, 0,-1, 2, 0, 0, 2,-1, 0, 3,-1},
+	{-1, 1, 0,-1, 0, 0, 0, 0,-1, 0, 9,-1},
+	{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
 };
 
 void InitializeMVP()
@@ -96,7 +117,7 @@ void LoadShaders()
 
 void LoadMaterials()
 {
-	material = new Material(glm::vec3(0.1f), glm::vec3(1.f), glm::vec3(1.f));
+	material = new Material(glm::vec3(LIGHT_AMBIENT), glm::vec3(LIGHT_DIFFUSE), glm::vec3(LIGHT_SPECULAR));
 }
 
 void LoadTextures()
@@ -109,6 +130,7 @@ void LoadTextures()
 	playerDif = new Texture("Textures/playerDif.png");
 }
 
+
 void LoadModels()
 {
 	std::vector<Vertex> treeObj = LoadOBJ("OBJ/tree.obj");
@@ -117,30 +139,36 @@ void LoadModels()
 	std::vector<Vertex> spikeObj = LoadOBJ("OBJ/spikes.obj");
 	std::vector<Vertex> endObj = LoadOBJ("OBJ/end.obj");
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAP_SIZE; i++)
 	{
-		for (int j = 0; j < 10; j++)
+		for (int j = 0; j < MAP_SIZE; j++)
 		{
-			if (mapGrounds[j][i] == 1)
+			if (mapGrounds[j][i] == MAP_GROUND)
 			{
-				models.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
+				groundObjects.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
 			}
 
-			if (mapObjects[j][i] == 1)
+			if (mapObjects[j][i] == MAP_BOUND)
 			{
-				player = new Player(new Model(glm::vec3(i*2.f, 1, j * 2.f), material, playerDif, playerSpec, playerObj, 1));
-				camera = new Camera(glm::vec3(i*2.f, 4.5f, j * 2.f));
+				boundsObjects.push_back(new GameObject(new Model(glm::vec3(i*2.f, 0.5f, j * 2.f), nullptr, nullptr, nullptr, std::vector<Vertex>(), 0.5f)));
 			}
-			if (mapObjects[j][i] == 2)
+			if (mapObjects[j][i] == MAP_START)
+			{
+				startPosition = glm::vec3(i*2.f, 1, j * 2.f);
+				player = new Player(new Model(startPosition, material, playerDif, treeTextureDif, playerObj, 1));
+				camera = new Camera(glm::vec3(i*2.f, CAMERA_Y, j * 2.f));
+			}
+			if (mapObjects[j][i] == MAP_TREE)
 			{
 				gameObjects.push_back(new GameObject(new Model(glm::vec3(i*2.f, 0.5f, j * 2.f), material, treeTextureDif, treeTextureSpec, treeObj, 0.5f)));
 			}
-			if (mapObjects[j][i] == 3)
+			if (mapObjects[j][i] == MAP_OBSTACLE)
 			{
-				obstacles.push_back(new Obstacle(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, spikeObj, 1.0f)));
+				obstacleObjects.push_back(new Obstacle(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, spikeObj, 1.0f)));
 			}
-			if (mapObjects[j][i] == 9)
+			if (mapObjects[j][i] == MAP_END)
 			{
+				lightPosition = glm::vec3(i*2.f, 5.0f, j * 2.f);
 				end = new GameObject(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, endObj, 0.5f));
 			}
 		}
@@ -184,18 +212,25 @@ void Display()
 		std::cout << "wygranko" << std::endl; // tymczasowo to a potem niewiem
 	}
 
-	for (int i = 0; i < obstacles.size(); i++)
+	for (int i = 0; i < boundsObjects.size(); i++)
 	{
-		obstacles[i]->Update();
+		if (player->SphereRectCollision(boundsObjects[i]->GetModel()))
+		{
+			PlayerMove(-playerMoveDirection);
+		}
+	}
 
-		if (player->SphereRectCollision(obstacles[i]->GetModel()))
+
+	for (int i = 0; i < obstacleObjects.size(); i++)
+	{
+		if (player->SphereRectCollision(obstacleObjects[i]->GetModel()))
 		{
 			//przegrywanko
-			PlayerMove(-playerMoveDirection); // tymczasowo to a potem reset albo cos
+			RestartPlayerPosition();
 			return;
 		}
 
-		obstacles[i]->Render(shader);
+		obstacleObjects[i]->Render(shader);
 	}
 
 	for (int i = 0; i < gameObjects.size(); i++)
@@ -209,9 +244,9 @@ void Display()
 		gameObjects[i]->Render(shader);
 	}
 
-	for (int i = 0; i < models.size(); i++)
+	for (int i = 0; i < groundObjects.size(); i++)
 	{
-		models[i]->Render(shader);
+		groundObjects[i]->Render(shader);
 	}
 
 
@@ -220,6 +255,12 @@ void Display()
 
 	glFlush();
 	glutSwapBuffers();
+}
+
+void RestartPlayerPosition()
+{
+	player->GetModel()->SetPosition(startPosition);
+	camera->SetPosition(glm::vec3(startPosition.x, CAMERA_Y, startPosition.z));
 }
 
 void PlayerMove(glm::vec3 cameraDirection)

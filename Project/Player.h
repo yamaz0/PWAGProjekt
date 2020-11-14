@@ -7,6 +7,7 @@ class Player: public GameObject
 {
 private:
 	float movementSpeed;
+
 public:
 
 	Player(Model* _model, float _movementSpeed = SPEED):GameObject(_model)

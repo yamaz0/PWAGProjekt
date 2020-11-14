@@ -109,6 +109,8 @@ void main()
 	//Final color
 	fs_color =
 		texture(material.diffuseTex, vs_texcoord)*texture(material.specularTex, vs_texcoord)
+		//texture(material.specularTex, vs_texcoord)
+		//texture(material.specularTex, vs_texcoord)
 		* (vec4(ambientFinal, 1.f) + vec4(diffuseFinal, 1.f) + vec4(specularFinal, 1.f)
 		* pointLight.intensity * vec4(pointLight.color, 1.f));
 }
