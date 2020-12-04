@@ -27,7 +27,7 @@ private:
 	void InitVAO()
 	{
 		//Create VAO
-		glCreateVertexArrays(1, &VAO);
+		glGenVertexArrays(1, &VAO);
 		glBindVertexArray(VAO);
 
 		//GEN VBO AND BIND AND SEND DATA
