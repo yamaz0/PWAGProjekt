@@ -37,7 +37,7 @@ const int MAP_TREE = 2;
 const int MAP_OBSTACLE = 3;
 const int MAP_END = 9;
 
-const float LIGHT_AMBIENT = 0.8f;
+const float LIGHT_AMBIENT = 0.98f;
 const float LIGHT_DIFFUSE = 1.f;
 const float LIGHT_SPECULAR = 1.f;
 
