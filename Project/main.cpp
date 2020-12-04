@@ -266,7 +266,8 @@ void RestartPlayerPosition()
 
 void PlayerMove(glm::vec3 cameraDirection)
 {
-	playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
+	//playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z)) * deltaTime;
+	playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z));
 	camera->Move(playerMoveDirection);
 	player->Move(playerMoveDirection);
 }
