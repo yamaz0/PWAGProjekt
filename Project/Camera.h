@@ -17,7 +17,7 @@ const float ZOOM = 45.0f;
 // An abstract camera class that processes input and calculates the corresponding Euler Angles, Vectors and Matrices for use in OpenGL
 class Camera
 {
-public:
+private:
 	// camera Attributes
 	glm::vec3 Position;
 	glm::vec3 Front;
@@ -31,7 +31,9 @@ public:
 	float MovementSpeed;
 	float MouseSensitivity;
 	float Zoom;
+	bool isEnable = true;
 
+public:
 	// constructor with vectors
 	Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
 	{
@@ -59,6 +61,13 @@ public:
 		updateCameraVectors();
 	}
 
+	void SetStartAngles()
+	{
+		Yaw = YAW;
+		Pitch = PITCH;
+		updateCameraVectors();
+	}
+
 	// returns the view matrix calculated using Euler Angles and the LookAt Matrix
 	glm::mat4 GetViewMatrix()
 	{
@@ -76,26 +85,34 @@ public:
 		Position = _position;
 	}
 
+	void SetEnable(bool state)
+	{
+		isEnable = state;
+	}
+
 	// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
 	void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
 	{
-		xoffset *= MouseSensitivity;
-		yoffset *= MouseSensitivity;
+		if (isEnable == true)
+		{		
+			xoffset *= MouseSensitivity;
+			yoffset *= MouseSensitivity;
 
-		Yaw += xoffset;
-		Pitch += yoffset;
+			Yaw += xoffset;
+			Pitch += yoffset;
 
-		// make sure that when pitch is out of bounds, screen doesn't get flipped
-		if (constrainPitch)
-		{
-			if (Pitch > 89.0f)
-				Pitch = 89.0f;
-			if (Pitch < -89.0f)
-				Pitch = -89.0f;
+			// make sure that when pitch is out of bounds, screen doesn't get flipped
+			if (constrainPitch)
+			{
+				if (Pitch > 89.0f)
+					Pitch = 89.0f;
+				if (Pitch < -89.0f)
+					Pitch = -89.0f;
+			}
+
+			// update Front, Right and Up Vectors using the updated Euler angles
+			updateCameraVectors();
 		}
-
-		// update Front, Right and Up Vectors using the updated Euler angles
-		updateCameraVectors();
 	}
 
 	void SetUniforms(Shader* shader)
@@ -105,6 +122,8 @@ public:
 
 	glm::vec3 GetFront() { return Front; }
 	glm::vec3 GetRight() { return Right; }
+	glm::vec3 GetPosition() { return Position; }
+	float GetZoom() { return Zoom; }
 
 private:
 	// calculates the front vector from the Camera's (updated) Euler Angles

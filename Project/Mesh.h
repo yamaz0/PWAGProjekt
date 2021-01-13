@@ -20,8 +20,6 @@ private:
 	GLuint VBO;
 	GLuint EBO;
 	
-	//glm::vec3 size;
-
 	glm::mat4 ModelMatrix;
 
 	void InitVAO()
@@ -78,10 +76,6 @@ public:
 		ModelMatrix = glm::translate(ModelMatrix, position - origin);
 		ModelMatrix = glm::scale(ModelMatrix, scale);
 	}
-	//glm::vec3 GetSize()
-	//{
-	//	return size;
-	//}
 
 	Mesh(
 		Vertex* _vertexArray,

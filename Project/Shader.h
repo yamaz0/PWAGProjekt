@@ -17,14 +17,13 @@ struct ShaderProgramSource
 class Shader
 {
 private:
-	std::string m_FilePath;
 	unsigned int m_RendererID;
 	std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
 
 	Shader(const std::string& filepath)
-		: m_FilePath(filepath), m_RendererID(0)
+		: m_RendererID(0)
 	{
 		ShaderProgramSource source = ParseShader(filepath);
 		m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);

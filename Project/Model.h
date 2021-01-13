@@ -18,6 +18,7 @@ private:
 	glm::vec3 rotation;
 	glm::vec3 scale;
 	float size;
+	bool isActive = true;
 
 public:
 	Model(
@@ -109,6 +110,10 @@ public:
 	{
 		scale = scale;
 	}
+	void SetEnable(bool state)
+	{
+		isActive = state;
+	}
 
 	//Functions
 	void Move(const glm::vec3 _position)
@@ -128,16 +133,19 @@ public:
 
 	void Render(Shader* shader)
 	{
-		shader->Bind();
+		if (isActive == true)
+		{
+			shader->Bind();
 
-		textureDiffuse->Bind(0);
-		textureSpecular->Bind(1);
+			textureDiffuse->Bind(0);
+			textureSpecular->Bind(1);
 
-		material->SetUniforms(*shader);
+			material->SetUniforms(*shader);
 
-		mesh->UpdateModelMatrix(position, origin, rotation, scale);
-		mesh->SetUniforms(shader);
-		mesh->Render(shader); 
+			mesh->UpdateModelMatrix(position, origin, rotation, scale);
+			mesh->SetUniforms(shader);
+			mesh->Render(shader); 
+		}
 	}
 
 	float GetSize() { return size; }

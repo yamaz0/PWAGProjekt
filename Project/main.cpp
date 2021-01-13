@@ -17,12 +17,15 @@
 #include "GameObject.h"
 #include "Obstacle.h"
 
+
 void PlayerMove(glm::vec3 cameraDirection);
 
 void RestartPlayerPosition();
 
+void Win();
+
 // ----------------------------------------------------------
-// Global Variables
+// Global Variables	
 // ----------------------------------------------------------
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -69,6 +72,23 @@ Texture* playerSpec;
 Texture* playerDif;
 Player* player;
 GameObject* end;
+Model* win;
+//Text text;
+
+//
+//void output(GLint x, GLint y, float r, float g, float b, const char *string)
+//{
+//	glClear(GL_COLOR_BUFFER_BIT);
+//	glLoadIdentity();
+//	glm::mat4 projection = glm::ortho(0.0f, (float)SCR_WIDTH, 0.0f, (float)SCR_HEIGHT);
+//	glColor3f(r, g, b);
+//	glWindowPos2i(x, y);
+//	int len, i;
+//	len = (int)strlen(string);
+//	for (i = 0; i < len; i++) {
+//		glutBitmapCharacter(GLUT_STROKE_MONO_ROMAN, string[i]);
+//	}
+//}
 
 int mapGrounds[MAP_SIZE][MAP_SIZE] =
 {
@@ -102,10 +122,12 @@ int mapObjects[MAP_SIZE][MAP_SIZE] =
 	{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1} //11
 };
 
+
+
 void InitializeMVP()
 {
-	glm::mat4 proj = glm::perspective(glm::radians(camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-	
+	glm::mat4 proj = glm::perspective(glm::radians(camera->GetZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
 	shader->Bind();
 	shader->SetUniformMat4f("ProjectionMatrix", proj);
 	camera->SetUniforms(shader);
@@ -139,6 +161,10 @@ void LoadModels()
 	std::vector<Vertex> playerObj = LoadOBJ("OBJ/player.obj");
 	std::vector<Vertex> spikeObj = LoadOBJ("OBJ/spikes.obj");
 	std::vector<Vertex> endObj = LoadOBJ("OBJ/end.obj");
+	std::vector<Vertex> winObj = LoadOBJ("OBJ/win.obj");
+
+	win = new Model(glm::vec3(0, 0, 0), material, groundDif, groundSpec, winObj);
+	win->SetEnable(false);
 
 	for (int i = 0; i < MAP_SIZE; i++)
 	{
@@ -198,7 +224,7 @@ void Setup()
 void Display()
 {
 	float timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
-	deltaTime = (timeSinceStart - time)/1000;
+	deltaTime = (timeSinceStart - time) / 1000;
 	time = timeSinceStart;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -206,11 +232,12 @@ void Display()
 	shader->Bind();
 	camera->SetUniforms(shader);
 	pointLights[0]->SetUniforms(shader);
+	//output(1,1,1,0,0,"asdasd");
 
 	if (player->SphereRectCollision(end->GetModel()))
 	{
 		//wygranko
-		std::cout << "wygranko" << std::endl; // tymczasowo to a potem niewiem
+		Win();
 	}
 
 	for (int i = 0; i < boundsObjects.size(); i++)
@@ -226,7 +253,7 @@ void Display()
 	{
 		if (player->SphereRectCollision(obstacleObjects[i]->GetModel()))
 		{
-			//przegrywanko
+			//przegranko
 			RestartPlayerPosition();
 			return;
 		}
@@ -253,15 +280,30 @@ void Display()
 
 	player->Render(shader);
 	end->Render(shader);
+	win->Render(shader);
+
+	//text.RenderText(textShader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 
 	glFlush();
 	glutSwapBuffers();
+}
+
+void Win()
+{
+	std::cout << "wygranko" << std::endl; // tymczasowo to a potem niewiem
+	camera->SetStartAngles();
+	camera->SetEnable(false);
+	win->SetEnable(true);
+	glutPostRedisplay();
 }
 
 void RestartPlayerPosition()
 {
 	player->GetModel()->SetPosition(startPosition);
 	camera->SetPosition(glm::vec3(startPosition.x, CAMERA_Y, startPosition.z));
+	camera->SetStartAngles();
+	camera->SetEnable(true);
+	win->SetEnable(false);
 }
 
 void PlayerMove(glm::vec3 cameraDirection)
@@ -270,6 +312,8 @@ void PlayerMove(glm::vec3 cameraDirection)
 	playerMoveDirection = normalize(glm::vec3(cameraDirection.x, 0, cameraDirection.z));
 	camera->Move(playerMoveDirection);
 	player->Move(playerMoveDirection);
+	win->SetPosition(camera->GetPosition() + glm::vec3(-1, -2, 0));
+	//win->SetPosition(player->GetModel()->GetPosition());
 }
 
 // ----------------------------------------------------------
@@ -278,15 +322,13 @@ void PlayerMove(glm::vec3 cameraDirection)
 void SpecialKeys(int key, int x, int y)
 {
 	if (key == GLUT_KEY_RIGHT)
-		lightPosition.z += 5;
+		camera->Move(camera->GetRight());
 	else if (key == GLUT_KEY_LEFT)
-		lightPosition.z -= 5;
+		camera->Move(-camera->GetRight());
 	else if (key == GLUT_KEY_UP)
-		lightPosition.x += 5;
+		camera->Move(camera->GetFront());
 	else if (key == GLUT_KEY_DOWN)
-		lightPosition.x -= 5;
-
-	pointLights[0]->SetPosition(lightPosition);
+		camera->Move(-camera->GetFront());
 
 	//  Request display update
 	glutPostRedisplay();
@@ -304,7 +346,7 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
-	
+
 	if (key == 'w')
 	{
 		PlayerMove(camera->GetFront());
@@ -381,7 +423,7 @@ int main(int argc, char* argv[])
 	//  Enable Z-buffer depth test
 	glEnable(GL_DEPTH_TEST);
 	Setup();
-
+	//std::cout<<text.InitializeFonts()<<std::endl;
 	// Callback functions
 	glutDisplayFunc(Display);
 	glutSpecialFunc(SpecialKeys);
@@ -389,7 +431,7 @@ int main(int argc, char* argv[])
 	glutMouseFunc(MouseButtonHandler);
 	glutMotionFunc(MouseMoveHandler);
 	//glutPassiveMotionFunc(MouseMoveHandler);
-	
+
 	//  Pass control to GLUT for events
 	glutMainLoop();
 
