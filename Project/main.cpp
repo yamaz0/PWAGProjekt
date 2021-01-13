@@ -25,7 +25,7 @@ void RestartPlayerPosition();
 void Win();
 
 // ----------------------------------------------------------
-// Global Variables	
+// Variables	
 // ----------------------------------------------------------
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
@@ -73,22 +73,6 @@ Texture* playerDif;
 Player* player;
 GameObject* end;
 Model* win;
-//Text text;
-
-//
-//void output(GLint x, GLint y, float r, float g, float b, const char *string)
-//{
-//	glClear(GL_COLOR_BUFFER_BIT);
-//	glLoadIdentity();
-//	glm::mat4 projection = glm::ortho(0.0f, (float)SCR_WIDTH, 0.0f, (float)SCR_HEIGHT);
-//	glColor3f(r, g, b);
-//	glWindowPos2i(x, y);
-//	int len, i;
-//	len = (int)strlen(string);
-//	for (i = 0; i < len; i++) {
-//		glutBitmapCharacter(GLUT_STROKE_MONO_ROMAN, string[i]);
-//	}
-//}
 
 int mapGrounds[MAP_SIZE][MAP_SIZE] =
 {
@@ -122,8 +106,6 @@ int mapObjects[MAP_SIZE][MAP_SIZE] =
 	{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1} //11
 };
 
-
-
 void InitializeMVP()
 {
 	glm::mat4 proj = glm::perspective(glm::radians(camera->GetZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -153,7 +135,6 @@ void LoadTextures()
 	playerDif = new Texture("Textures/playerDif.png");
 }
 
-
 void LoadModels()
 {
 	std::vector<Vertex> treeObj = LoadOBJ("OBJ/tree.obj");
@@ -172,7 +153,7 @@ void LoadModels()
 		{
 			if (mapGrounds[j][i] == MAP_GROUND)
 			{
-				groundObjects.push_back(new Model(glm::vec3(i*2.f, 0, j * 2.f), material, groundDif, groundSpec, cubeObj));
+				groundObjects.push_back(new Model(glm::vec3(i*2.f, -0.5f, j * 2.f), material, groundDif, groundSpec, cubeObj));
 			}
 
 			if (mapObjects[j][i] == MAP_BOUND)
@@ -182,7 +163,7 @@ void LoadModels()
 			if (mapObjects[j][i] == MAP_START)
 			{
 				startPosition = glm::vec3(i*2.f, 1, j * 2.f);
-				player = new Player(new Model(startPosition, material, playerDif, treeTextureDif, playerObj, 1));
+				player = new Player(new Model(startPosition, material, playerDif, playerSpec, playerObj, 1));
 				camera = new Camera(glm::vec3(i*2.f, CAMERA_Y, j * 2.f));
 			}
 			if (mapObjects[j][i] == MAP_TREE)
@@ -191,12 +172,12 @@ void LoadModels()
 			}
 			if (mapObjects[j][i] == MAP_OBSTACLE)
 			{
-				obstacleObjects.push_back(new Obstacle(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, spikeObj, 1.0f)));
+				obstacleObjects.push_back(new Obstacle(new Model(glm::vec3(i*2.f, 0.5f, j * 2.f), material, treeTextureDif, treeTextureSpec, spikeObj, 1.0f)));
 			}
 			if (mapObjects[j][i] == MAP_END)
 			{
 				lightPosition = glm::vec3(i*2.f, 5.0f, j * 2.f);
-				end = new GameObject(new Model(glm::vec3(i*2.f, 1.0f, j * 2.f), material, treeTextureDif, treeTextureSpec, endObj, 0.5f));
+				end = new GameObject(new Model(glm::vec3(i*2.f, 0.5f, j * 2.f), material, treeTextureDif, treeTextureSpec, endObj, 0.5f));
 			}
 		}
 	}
@@ -232,11 +213,9 @@ void Display()
 	shader->Bind();
 	camera->SetUniforms(shader);
 	pointLights[0]->SetUniforms(shader);
-	//output(1,1,1,0,0,"asdasd");
 
 	if (player->SphereRectCollision(end->GetModel()))
 	{
-		//wygranko
 		Win();
 	}
 
@@ -253,7 +232,6 @@ void Display()
 	{
 		if (player->SphereRectCollision(obstacleObjects[i]->GetModel()))
 		{
-			//przegranko
 			RestartPlayerPosition();
 			return;
 		}
@@ -281,16 +259,14 @@ void Display()
 	player->Render(shader);
 	end->Render(shader);
 	win->Render(shader);
-
-	//text.RenderText(textShader, "This is sample text", 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
-
+	
 	glFlush();
 	glutSwapBuffers();
 }
 
 void Win()
 {
-	std::cout << "wygranko" << std::endl; // tymczasowo to a potem niewiem
+	std::cout << "wygranko" << std::endl;
 	camera->SetStartAngles();
 	camera->SetEnable(false);
 	win->SetEnable(true);
@@ -313,7 +289,6 @@ void PlayerMove(glm::vec3 cameraDirection)
 	camera->Move(playerMoveDirection);
 	player->Move(playerMoveDirection);
 	win->SetPosition(camera->GetPosition() + glm::vec3(-1, -2, 0));
-	//win->SetPosition(player->GetModel()->GetPosition());
 }
 
 // ----------------------------------------------------------
@@ -330,7 +305,6 @@ void SpecialKeys(int key, int x, int y)
 	else if (key == GLUT_KEY_DOWN)
 		camera->Move(-camera->GetFront());
 
-	//  Request display update
 	glutPostRedisplay();
 }
 // ----------------------------------------------------------
@@ -370,7 +344,9 @@ void NormalKeyHandler(unsigned char key, int x, int y)
 
 	glutPostRedisplay();
 }
-
+// ----------------------------------------------------------
+// MouseButtonHandler() Callback Function
+// ----------------------------------------------------------
 void MouseButtonHandler(int button, int state, int x, int y)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
@@ -378,7 +354,9 @@ void MouseButtonHandler(int button, int state, int x, int y)
 		firstMouse = true;
 	}
 }
-
+// ----------------------------------------------------------
+// MouseMoveHandler() Callback Function
+// ----------------------------------------------------------
 void MouseMoveHandler(int x, int y)
 {
 	if (firstMouse)
@@ -423,7 +401,7 @@ int main(int argc, char* argv[])
 	//  Enable Z-buffer depth test
 	glEnable(GL_DEPTH_TEST);
 	Setup();
-	//std::cout<<text.InitializeFonts()<<std::endl;
+
 	// Callback functions
 	glutDisplayFunc(Display);
 	glutSpecialFunc(SpecialKeys);

@@ -45,30 +45,6 @@ public:
 		SetMesh(mesh);
 	}
 
-	//OBJ file loaded model
-	//Model(
-	//	glm::vec3 _position,
-	//	Material* _material,
-	//	Texture* _textureDiffuse,
-	//	Texture* _textureSpecular,
-	//	const char* objFile,
-	//	float _size = 1.0f,
-	//	glm::vec3 _origin = glm::vec3(0.f),
-	//	glm::vec3 _rotation = glm::vec3(0.f),
-	//	glm::vec3 _scale = glm::vec3(1.f))
-	//{
-	//	position = _position;
-	//	size = _size;
-	//	origin = _origin;
-	//	rotation = _rotation;
-	//	scale = _scale;
-	//	material = _material;
-	//	textureDiffuse = _textureDiffuse;
-	//	textureSpecular = _textureSpecular;
-	//	std::vector<Vertex> mesh = LoadOBJ(objFile);
-	//	SetMesh(mesh);
-	//}
-
 	void SetMesh(std::vector<Vertex> &_mesh)
 	{
 		mesh = new Mesh(_mesh.data(), _mesh.size(), NULL, 0);
